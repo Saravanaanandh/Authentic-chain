@@ -7,7 +7,7 @@ import { addProfile } from "@/lib/store";
 import { uploadImage } from "@/lib/cloudinary";
 import { StoredProfile } from "@/lib/types";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 // Simple in-memory rate limiter (per IP) to prevent blockchain spam
 const rateLimitMap = new Map<string, { count: number; timestamp: number }>();

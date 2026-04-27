@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDashboardStats, getFilteredProfiles } from "@/lib/store";
 import type { ProfileStatus } from "@/lib/types";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
