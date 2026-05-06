@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { FiUser, FiMail, FiLock, FiAlertTriangle, FiShield } from "react-icons/fi";
+import { FiUser, FiMail, FiLock, FiAlertTriangle, FiInstagram } from "react-icons/fi";
 import Navbar from "@/components/Navbar";
 
 export default function RegisterPage() {
@@ -37,6 +38,14 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    signIn("google", { callbackUrl: "/" });
+  };
+
+  const handleInstagramSignIn = () => {
+    signIn("instagram", { callbackUrl: "/" });
   };
 
   const ic = "w-full bg-surface-800/60 border border-brand-500/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-400 transition-all text-sm";
@@ -100,6 +109,27 @@ export default function RegisterPage() {
               {loading ? "Registering..." : "Register"}
             </button>
           </form>
+
+          <div className="mt-6 flex items-center justify-between">
+            <span className="w-1/5 border-b border-surface-600 lg:w-1/4"></span>
+            <span className="text-xs text-center text-slate-500 uppercase">or sign up with</span>
+            <span className="w-1/5 border-b border-surface-600 lg:w-1/4"></span>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3">
+            <button 
+              onClick={handleGoogleSignIn}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-brand-500/30 text-white font-semibold hover:bg-surface-700 transition-all"
+            >
+              Google
+            </button>
+            <button 
+              onClick={handleInstagramSignIn}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-brand-500/30 text-white font-semibold hover:bg-surface-700 transition-all"
+            >
+              <FiInstagram className="text-brand-400" /> Instagram
+            </button>
+          </div>
 
           <p className="mt-6 text-center text-sm text-slate-400">
             Already have an account? <Link href="/login" className="text-brand-400 hover:underline">Sign In</Link>

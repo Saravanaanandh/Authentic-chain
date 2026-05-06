@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import InstagramProvider from "next-auth/providers/instagram";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
@@ -10,6 +11,10 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    InstagramProvider({
+      clientId: process.env.INSTAGRAM_CLIENT_ID!,
+      clientSecret: process.env.INSTAGRAM_CLIENT_SECRET!,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -45,18 +50,18 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "instagram") {
         if (!user.email) return false;
         await connectDB();
         const existingUser = await User.findOne({ email: user.email });
         if (!existingUser) {
-          // Create new user for google login
+          // Create new user for OAuth login
           await User.create({
             email: user.email,
-            name: user.name || "Google User",
+            name: user.name || `${account.provider.charAt(0).toUpperCase() + account.provider.slice(1)} User`,
             image: user.image || "",
             role: "user", // Default role
-            authProvider: "google",
+            authProvider: account.provider,
           });
         }
       }
@@ -66,7 +71,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role; // This comes from authorize if credentials
         if (!token.role && token.email) {
-          // If google, we need to fetch the role from DB
+          // If OAuth, we need to fetch the role from DB
           await connectDB();
           const dbUser = await User.findOne({ email: token.email });
           if (dbUser) {

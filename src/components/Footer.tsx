@@ -1,6 +1,7 @@
 "use client";
 
 import { FiShield, FiGithub, FiHeart } from "react-icons/fi";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -11,6 +12,8 @@ export default function Footer() {
           <span>FakeID Shield &copy; {new Date().getFullYear()}</span>
         </div>
         <div className="flex items-center gap-4 text-slate-500 text-xs">
+          <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+          <Link href="/data-deletion" className="hover:text-white transition-colors">Data Deletion</Link>
           <span className="flex items-center gap-1">Built with <FiHeart className="text-cyber-pink" /> Next.js + TailwindCSS</span>
           <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><FiGithub size={16} /></a>
         </div>
