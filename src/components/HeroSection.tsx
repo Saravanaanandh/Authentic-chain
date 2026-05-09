@@ -115,14 +115,14 @@ export default function HeroSection() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <Link href="/analyze">
+          <Link href="/instagram-analyzer">
             <motion.button
-              whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(99,102,241,0.4)" }}
+              whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(236,72,153,0.4)" }}
               whileTap={{ scale: 0.97 }}
-              className="group flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white font-semibold text-base shadow-lg shadow-brand-600/30 transition-all cursor-pointer"
+              className="group flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyber-pink to-cyber-purple text-white font-semibold text-base shadow-lg shadow-cyber-pink/25 transition-all cursor-pointer"
             >
-              <FiShield className="text-lg" />
-              Analyze a Profile
+              <FiImage className="text-lg" />
+              Profile Analyzer
               <FiArrowRight className="text-lg group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </Link>

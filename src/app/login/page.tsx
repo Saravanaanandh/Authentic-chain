@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FiMail, FiLock, FiAlertTriangle, FiGithub, FiInstagram } from "react-icons/fi"; // Used Github icon as placeholder, let's just use text for Google
+import { FiMail, FiLock, FiAlertTriangle, FiGithub } from "react-icons/fi"; // Used Github icon as placeholder, let's just use text for Google
 import Navbar from "@/components/Navbar";
 
 export default function LoginPage() {
@@ -36,10 +36,6 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = () => {
     signIn("google", { callbackUrl: "/" });
-  };
-
-  const handleInstagramSignIn = () => {
-    signIn("instagram", { callbackUrl: "/" });
   };
 
   const ic = "w-full bg-surface-800/60 border border-brand-500/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-400 transition-all text-sm";
@@ -103,12 +99,6 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-brand-500/30 text-white font-semibold hover:bg-surface-700 transition-all"
             >
               Google
-            </button>
-            <button 
-              onClick={handleInstagramSignIn}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-brand-500/30 text-white font-semibold hover:bg-surface-700 transition-all"
-            >
-              <FiInstagram className="text-brand-400" /> Instagram
             </button>
           </div>
 

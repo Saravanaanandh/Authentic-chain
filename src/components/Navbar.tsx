@@ -21,7 +21,8 @@ export default function Navbar() {
 
   const links = [
     { href: "/", label: "Home" },
-    { href: "/analyze", label: "Analyze Profile" },
+    { href: "/how-to-use", label: "How to Use" },
+    { href: "/instagram-analyzer", label: "Profile Analyzer" },
     { href: "/history", label: "History" },
   ];
 
@@ -51,7 +52,7 @@ export default function Navbar() {
               <FiShield className="text-brand-400 text-xl" />
             </motion.div>
             <span className="text-lg font-bold gradient-text hidden sm:inline">
-              FakeID Shield
+              FakeID Analyzer
             </span>
           </Link>
 
@@ -153,6 +154,7 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+
               <div className="border-t border-brand-500/10 my-2 pt-2">
                 {session ? (
                   <button
