@@ -7,6 +7,8 @@
    ===================================================== */
 
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import User from "@/lib/models/User";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -42,6 +44,28 @@ export async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
+    
+    // Auto-seed admin user
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPass = process.env.ADMIN_PASS;
+    if (adminEmail && adminPass) {
+      try {
+        const existingAdmin = await User.findOne({ email: adminEmail });
+        if (!existingAdmin) {
+          const hashedPassword = await bcrypt.hash(adminPass, 10);
+          await User.create({
+            email: adminEmail,
+            name: "Administrator",
+            password: hashedPassword,
+            role: "admin",
+            authProvider: "credentials",
+          });
+          console.log(`✅ Admin user seeded: ${adminEmail}`);
+        }
+      } catch (err) {
+        console.error("⚠️ Failed to seed admin user:", err);
+      }
+    }
   } catch (e) {
     cached.promise = null;
     throw e;
