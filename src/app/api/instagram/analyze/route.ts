@@ -15,6 +15,10 @@ import { analyzeInstagramProfile } from "@/lib/fakeScoreEngine";
 import { storeOnBlockchain } from "@/lib/blockchain";
 import { connectDB } from "@/lib/mongodb";
 import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
+import { mapApifyToPredictionInput, callExternalPredictionAPI } from "@/services/externalPredictionService";
+import { calculateHybridScore } from "@/utils/hybridScoreEngine";
+import { validateProfileExists, returnValidationError } from "@/utils/profileExistenceValidator";
+
 
 // Simple in-memory rate limiter (per IP, 10 requests / minute)
 const rateMap = new Map<string, { count: number; reset: number }>();
@@ -81,7 +85,7 @@ export async function POST(req: NextRequest) {
       }
       if (message.includes("not found") || message.includes("private")) {
         return NextResponse.json(
-          { success: false, error: message },
+          returnValidationError(username),
           { status: 404 }
         );
       }
@@ -91,8 +95,79 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!validateProfileExists(profileData)) {
+      return NextResponse.json(
+        returnValidationError(username),
+        { status: 404 }
+      );
+    }
+
     // ---- Analyse profile ----
-    const analysis = analyzeInstagramProfile(profileData);
+    let analysis;
+    try {
+      // Attempt to call Python ML Microservice
+      const mlUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000/predict-profile";
+      const mlKey = process.env.ML_SERVICE_API_KEY || "fakeid-shield-secret-key-2026";
+      
+      const mlResponse = await fetch(mlUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${mlKey}`
+        },
+        body: JSON.stringify({
+          platform: "instagram",
+          username: profileData.username,
+          bio: profileData.biography,
+          followers: profileData.followersCount,
+          following: profileData.followsCount,
+          posts: profileData.postsCount,
+          verified: profileData.verified,
+          profileImageUrl: profileData.profilePicUrl
+        }),
+        // Fast fallback if service is down
+        signal: AbortSignal.timeout(5000)
+      });
+      
+      if (mlResponse.ok) {
+        const mlData = await mlResponse.json();
+        analysis = {
+          riskScore: mlData.fakeProbability,
+          fakeProbability: mlData.fakeProbability,
+          verdict: mlData.finalPrediction,
+          reasons: mlData.reasons,
+          tabularScore: mlData.tabularScore,
+          imageScore: mlData.imageScore,
+          bioScore: mlData.bioScore,
+          anomalyScore: mlData.anomalyScore,
+        };
+      } else {
+        throw new Error(`ML Service returned non-200: ${mlResponse.status}`);
+      }
+    } catch (mlErr) {
+      console.log("ML Microservice offline or failed, falling back to rule-based engine.", mlErr);
+      analysis = analyzeInstagramProfile(profileData);
+    }
+
+    // ---- External API Prediction ----
+    const internalAnalysis = analysis;
+    let externalAnalysis;
+    try {
+      const externalPayload = mapApifyToPredictionInput(profileData);
+      const externalRes = await callExternalPredictionAPI(externalPayload);
+      if (externalRes.success) {
+        externalAnalysis = externalRes.analysis;
+      } else {
+        externalAnalysis = { unavailable: true };
+      }
+    } catch (extErr) {
+      console.error("External prediction failed:", extErr);
+      externalAnalysis = { unavailable: true };
+    }
+
+    // ---- Hybrid Fusion Engine ----
+    const hybridAnalysis = calculateHybridScore(externalAnalysis, internalAnalysis);
+
 
     // ---- Blockchain proof (optional — gracefully skip on failure) ----
     let blockchainProof: {
@@ -106,12 +181,12 @@ export async function POST(req: NextRequest) {
       const { createHash } = await import("crypto");
       const timestamp = new Date().toISOString();
       const dataHash = createHash("sha256")
-        .update(`${username}|${analysis.riskScore}|${timestamp}`)
+        .update(`${username}|${hybridAnalysis.finalRiskScore}|${timestamp}`)
         .digest("hex");
 
       const proof = await storeOnBlockchain(
         dataHash,
-        analysis.verdict
+        hybridAnalysis.finalVerdict
       );
 
       blockchainProof = {
@@ -154,11 +229,20 @@ export async function POST(req: NextRequest) {
         instagramId: profileData.id,
       },
       analysis: {
-        riskScore: analysis.riskScore,
-        fakeProbability: analysis.fakeProbability,
-        verdict: analysis.verdict,
-        reasons: analysis.reasons,
+        riskScore: hybridAnalysis.finalRiskScore,
+        fakeProbability: hybridAnalysis.finalFakeProbability,
+        verdict: hybridAnalysis.finalVerdict,
+        reasons: hybridAnalysis.combinedReasons,
+        tabularScore: internalAnalysis.tabularScore,
+        imageScore: internalAnalysis.imageScore,
+        bioScore: internalAnalysis.bioScore,
+        anomalyScore: internalAnalysis.anomalyScore,
       },
+      externalAnalysis,
+      internalAnalysis,
+      hybridAnalysis,
+      sourcePlatform: "instagram",
+      apifyRawData: profileData,
       blockchainHash: blockchainProof?.dataHash || "",
       blockchainTx: blockchainProof?.txHash || "",
       scannedBy,
@@ -167,24 +251,11 @@ export async function POST(req: NextRequest) {
     // ---- Response ----
     return NextResponse.json({
       success: true,
-      profile: {
-        username: profileData.username,
-        fullName: profileData.fullName,
-        biography: profileData.biography,
-        followersCount: profileData.followersCount,
-        followsCount: profileData.followsCount,
-        postsCount: profileData.postsCount,
-        verified: profileData.verified,
-        profilePicUrl: profileData.profilePicUrl,
-        isPrivate: profileData.isPrivate,
-        externalUrl: profileData.externalUrl,
-      },
-      analysis: {
-        riskScore: analysis.riskScore,
-        fakeProbability: analysis.fakeProbability,
-        verdict: analysis.verdict,
-        reasons: analysis.reasons,
-      },
+      username: profileData.username,
+      apifyData: profileData,
+      internalAnalysis,
+      externalAnalysis,
+      hybridAnalysis,
       blockchainProof: blockchainProof
         ? {
             txHash: blockchainProof.txHash,

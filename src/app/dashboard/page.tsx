@@ -8,15 +8,13 @@ import {
   FiSearch, FiDownload, FiChevronLeft, FiChevronRight,
   FiShield, FiAlertTriangle, FiCheckCircle, FiXCircle,
   FiActivity, FiTarget, FiTrendingUp, FiHome, FiPlusCircle,
-  FiGrid, FiClock, FiExternalLink, FiRefreshCw,
-  FiInstagram, FiFacebook, FiTwitter, FiLinkedin, FiList
+  FiGrid, FiClock, FiExternalLink, FiRefreshCw, FiCpu,
+  FiInstagram, FiList
 } from "react-icons/fi";
+
 
 const platformIcons: Record<string, React.ReactNode> = {
   Instagram: <FiInstagram className="inline" />,
-  Facebook: <FiFacebook className="inline" />,
-  Twitter: <FiTwitter className="inline" />,
-  LinkedIn: <FiLinkedin className="inline" />,
 };
 
 /* ---- Types ---- */
@@ -32,18 +30,13 @@ interface Pagination { page: number; limit: number; totalFiltered: number; total
 
 type Filter = "ALL" | "REAL" | "FAKE" | "SUSPICIOUS";
 
-const filters: { key: Filter; label: string; color: string }[] = [
-  { key: "ALL",        label: "All",        color: "text-white" },
-  { key: "REAL",       label: "Real",       color: "text-cyber-green" },
-  { key: "FAKE",       label: "Fake",       color: "text-cyber-red" },
-  { key: "SUSPICIOUS", label: "Suspicious", color: "text-cyber-amber" },
-];
-
 const sidebarLinks = [
   { href: "/",        label: "Home",     icon: FiHome },
-  { href: "/analyze", label: "New Scan", icon: FiPlusCircle },
+  { href: "/instagram-analyzer", label: "New Scan", icon: FiPlusCircle },
   { href: "/dashboard", label: "Dashboard", icon: FiGrid },
+  { href: "/dashboard/retrain", label: "ML Retraining", icon: FiCpu },
 ];
+
 
 const resultBadge = {
   REAL:       { icon: FiCheckCircle, text: "REAL",       fg: "text-cyber-green", bg: "bg-cyber-green/10", border: "border-cyber-green/30" },
@@ -56,9 +49,7 @@ export default function DashboardPage() {
   const [profiles, setProfiles] = useState<DashboardProfile[]>([]);
   const [stats, setStats] = useState<Stats>({ totalProfiles: 0, fakeCount: 0, realCount: 0, suspiciousCount: 0, avgTrustScore: 0 });
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, totalFiltered: 0, totalPages: 1 });
-  const [filter, setFilter] = useState<Filter>("ALL");
   const [search, setSearch] = useState("");
-  const [platform, setPlatform] = useState("All");
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState("");
   const [isMounted, setIsMounted] = useState(false);
@@ -69,9 +60,7 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filter !== "ALL") params.set("filter", filter);
       if (search) params.set("search", search);
-      if (platform !== "All") params.set("platform", platform);
       params.set("page", String(pg));
       params.set("limit", "10");
       const res = await fetch(`/api/dashboard?${params}`);
@@ -82,7 +71,7 @@ export default function DashboardPage() {
     } catch { /* empty */ }
     setLoading(false);
     setCurrentTime(new Date().toLocaleTimeString());
-  }, [filter, search, platform]);
+  }, [search]);
 
   useEffect(() => { fetchData(1); }, [fetchData]);
 
@@ -196,27 +185,6 @@ export default function DashboardPage() {
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input type="text" placeholder="Search username or scan ID…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-surface-800/60 border border-brand-500/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-400 transition-all" />
             </div>
-            
-            {/* Platform Filter */}
-            <select 
-              value={platform} 
-              onChange={(e) => setPlatform(e.target.value)}
-              className="bg-surface-800/60 border border-brand-500/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-400 transition-all"
-            >
-              <option value="All">All Platforms</option>
-              <option value="Instagram">Instagram</option>
-              <option value="Facebook">Facebook</option>
-              <option value="Twitter">Twitter</option>
-              <option value="LinkedIn">LinkedIn</option>
-            </select>
-            {/* Filter pills */}
-            <div className="flex items-center gap-1 bg-surface-800/60 rounded-xl p-1 border border-brand-500/10">
-              {filters.map(f => (
-                <button key={f.key} onClick={() => setFilter(f.key)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${filter === f.key ? `bg-surface-600 text-white shadow-sm` : `text-slate-400 hover:text-white`}`}>
-                  {f.label}
-                </button>
-              ))}
-            </div>
             {/* Refresh */}
             <motion.button whileHover={{ rotate: 180 }} transition={{ duration: 0.4 }} onClick={() => fetchData(pagination.page)} className="p-2.5 rounded-lg border border-brand-500/20 text-slate-400 hover:text-white transition-colors cursor-pointer">
               <FiRefreshCw className={loading ? "animate-spin" : ""} />
@@ -246,7 +214,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <AnimatePresence mode="wait">
-                <motion.div key={`${filter}-${pagination.page}-${search}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+                <motion.div key={`${pagination.page}-${search}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
                   {profiles.map((p, i) => {
                     const b = resultBadge[p.result];
                     const Icon = b.icon;
@@ -273,7 +241,7 @@ export default function DashboardPage() {
                         </div>
                         {/* Risk score */}
                         <div className="col-span-2 flex flex-col items-center gap-1">
-                          <span className={`text-sm font-bold ${b.fg}`}>{p.riskScore}<span className="text-slate-500 font-normal">/100</span></span>
+                          <span className={`text-sm font-bold ${b.fg}`}>{Math.round(p.riskScore)}<span className="text-slate-500 font-normal">/100</span></span>
                           <div className="w-full max-w-[80px] h-1 rounded-full bg-surface-700 overflow-hidden">
                             <div className="h-full rounded-full" style={{ width: `${p.riskScore}%`, background: p.riskScore <= 30 ? "#10b981" : p.riskScore <= 60 ? "#f59e0b" : "#ef4444" }} />
                           </div>

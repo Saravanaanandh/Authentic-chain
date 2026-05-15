@@ -19,6 +19,10 @@ export interface FakeScoreResult {
     detail: string;
     weight: number;
   }[];
+  tabularScore?: number;
+  imageScore?: number;
+  bioScore?: number;
+  anomalyScore?: number;
 }
 
 // ---------- Internal Helpers ----------

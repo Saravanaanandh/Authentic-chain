@@ -4,9 +4,6 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiInstagram,
-  FiFacebook,
-  FiTwitter,
-  FiLinkedin,
   FiSearch,
   FiX,
   FiUsers,
@@ -26,6 +23,10 @@ import {
 } from "react-icons/fi";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ProfileNotFound from "@/components/ProfileNotFound";
+import FeedbackForm from "@/components/FeedbackForm";
+
+
 
 // ---------- Types ----------
 
@@ -47,6 +48,10 @@ interface AnalysisResult {
   fakeProbability: number;
   verdict: "REAL" | "SUSPICIOUS" | "HIGHLY FAKE";
   reasons: { signal: string; detail: string; weight: number }[];
+  tabularScore?: number;
+  imageScore?: number;
+  bioScore?: number;
+  anomalyScore?: number;
 }
 
 interface BlockchainProof {
@@ -57,8 +62,18 @@ interface BlockchainProof {
 
 interface ApiResponse {
   success: boolean;
-  profile?: ProfileData;
-  analysis?: AnalysisResult;
+  username?: string;
+  apifyData?: ProfileData;
+  internalAnalysis?: any;
+  externalAnalysis?: any;
+  hybridAnalysis?: {
+    finalFakeProbability: number;
+    finalRiskScore: number;
+    finalVerdict: string;
+    combinedReasons: { signal: string; detail: string; weight: number }[];
+    weights: { external: number; internal: number };
+    externalUnavailable?: boolean;
+  };
   blockchainProof?: BlockchainProof | null;
   error?: string;
 }
@@ -116,8 +131,10 @@ export default function InstagramAnalyzerPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<{stage: string, username?: string} | null>(null);
   const [detectedUsername, setDetectedUsername] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("instagram");
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // Auto-detect username from input
   const handleInputChange = (val: string) => {
@@ -143,7 +160,9 @@ export default function InstagramAnalyzerPage() {
     setInput("");
     setResult(null);
     setError(null);
+    setValidationError(null);
     setDetectedUsername(null);
+    setShowFeedback(false);
   };
 
   const handleAnalyze = useCallback(async () => {
@@ -154,6 +173,7 @@ export default function InstagramAnalyzerPage() {
 
     setLoading(true);
     setError(null);
+    setValidationError(null);
     setResult(null);
 
     try {
@@ -163,10 +183,14 @@ export default function InstagramAnalyzerPage() {
         body: JSON.stringify({ input: input.trim() }),
       });
 
-      const data: ApiResponse = await res.json();
+      const data: any = await res.json();
 
       if (!data.success) {
-        setError(data.error || "Analysis failed.");
+        if (data.stage === "PROFILE_VALIDATION") {
+          setValidationError({ stage: data.stage, username: data.username || detectedUsername || "" });
+        } else {
+          setError(data.error || "Analysis failed.");
+        }
       } else {
         setResult(data);
       }
@@ -177,8 +201,8 @@ export default function InstagramAnalyzerPage() {
     }
   }, [input]);
 
-  const verdictConfig = result?.analysis
-    ? getVerdictConfig(result.analysis.verdict)
+  const verdictConfig = result?.hybridAnalysis
+    ? getVerdictConfig(result.hybridAnalysis.finalVerdict)
     : null;
 
   return (
@@ -215,9 +239,6 @@ export default function InstagramAnalyzerPage() {
           <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
             {[
               { id: "instagram", label: "Instagram", icon: FiInstagram },
-              { id: "facebook", label: "Facebook", icon: FiFacebook },
-              { id: "twitter", label: "Twitter", icon: FiTwitter },
-              { id: "linkedin", label: "LinkedIn", icon: FiLinkedin },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
@@ -387,9 +408,19 @@ export default function InstagramAnalyzerPage() {
             )}
           </AnimatePresence>
 
+          {/* ---- Profile Validation Error ---- */}
+          <AnimatePresence>
+            {validationError && (
+              <ProfileNotFound 
+                username={validationError.username} 
+                onRetry={handleClear} 
+              />
+            )}
+          </AnimatePresence>
+
           {/* ---- Results ---- */}
           <AnimatePresence>
-            {result?.success && result.profile && result.analysis && (
+            {result?.success && result.apifyData && result.hybridAnalysis && (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -404,10 +435,10 @@ export default function InstagramAnalyzerPage() {
                     <div className="flex-shrink-0 flex justify-center sm:justify-start">
                       <div className="relative">
                         <div className={`w-24 h-24 rounded-full overflow-hidden border-2 ${verdictConfig?.border} ${verdictConfig?.glow} shadow-lg`}>
-                          {result.profile.profilePicUrl ? (
+                          {result.apifyData.profilePicUrl ? (
                             <img
-                              src={`/api/instagram/proxy-image?url=${encodeURIComponent(result.profile.profilePicUrl)}`}
-                              alt={result.profile.username}
+                              src={`/api/instagram/proxy-image?url=${encodeURIComponent(result.apifyData.profilePicUrl)}`}
+                              alt={result.apifyData.username}
                               referrerPolicy="no-referrer"
                               crossOrigin="anonymous"
                               className="w-full h-full object-cover"
@@ -422,12 +453,12 @@ export default function InstagramAnalyzerPage() {
                           ) : null}
                           <div
                             className="w-full h-full bg-surface-700 items-center justify-center"
-                            style={{ display: result.profile.profilePicUrl ? "none" : "flex" }}
+                            style={{ display: result.apifyData.profilePicUrl ? "none" : "flex" }}
                           >
                             <FiUsers className="text-3xl text-slate-500" />
                           </div>
                         </div>
-                        {result.profile.verified && (
+                        {result.apifyData.verified && (
                           <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-cyber-blue flex items-center justify-center border-2 border-surface-900">
                             <FiCheckCircle className="text-white text-xs" />
                           </div>
@@ -439,25 +470,25 @@ export default function InstagramAnalyzerPage() {
                     <div className="flex-1 text-center sm:text-left">
                       <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
                         <h2 className="text-xl font-bold text-white">
-                          {result.profile.fullName || result.profile.username}
+                          {result.apifyData.fullName || result.apifyData.username}
                         </h2>
-                        {result.profile.verified && (
+                        {result.apifyData.verified && (
                           <span className="px-2 py-0.5 rounded text-xs bg-cyber-blue/20 text-cyber-blue border border-cyber-blue/30 font-medium">
                             Verified
                           </span>
                         )}
-                        {result.profile.isPrivate && (
+                        {result.apifyData.isPrivate && (
                           <span className="px-2 py-0.5 rounded text-xs bg-cyber-amber/20 text-cyber-amber border border-cyber-amber/30 font-medium">
                             Private
                           </span>
                         )}
                       </div>
                       <p className="text-brand-300 text-sm font-mono mb-3">
-                        @{result.profile.username}
+                        @{result.apifyData.username}
                       </p>
-                      {result.profile.biography && (
+                      {result.apifyData.biography && (
                         <p className="text-slate-400 text-sm leading-relaxed mb-4 max-w-lg">
-                          {result.profile.biography}
+                          {result.apifyData.biography}
                         </p>
                       )}
 
@@ -465,7 +496,7 @@ export default function InstagramAnalyzerPage() {
                       <div className="flex items-center justify-center sm:justify-start gap-6">
                         <div className="text-center">
                           <div className="text-white font-bold text-lg">
-                            {formatNumber(result.profile.postsCount)}
+                            {formatNumber(result.apifyData.postsCount)}
                           </div>
                           <div className="text-slate-500 text-xs uppercase tracking-wider">
                             Posts
@@ -474,7 +505,7 @@ export default function InstagramAnalyzerPage() {
                         <div className="w-px h-8 bg-brand-500/20" />
                         <div className="text-center">
                           <div className="text-white font-bold text-lg">
-                            {formatNumber(result.profile.followersCount)}
+                            {formatNumber(result.apifyData.followersCount)}
                           </div>
                           <div className="text-slate-500 text-xs uppercase tracking-wider">
                             Followers
@@ -483,7 +514,7 @@ export default function InstagramAnalyzerPage() {
                         <div className="w-px h-8 bg-brand-500/20" />
                         <div className="text-center">
                           <div className="text-white font-bold text-lg">
-                            {formatNumber(result.profile.followsCount)}
+                            {formatNumber(result.apifyData.followsCount)}
                           </div>
                           <div className="text-slate-500 text-xs uppercase tracking-wider">
                             Following
@@ -491,15 +522,15 @@ export default function InstagramAnalyzerPage() {
                         </div>
                       </div>
 
-                      {result.profile.externalUrl && (
+                      {result.apifyData.externalUrl && (
                         <a
-                          href={result.profile.externalUrl}
+                          href={result.apifyData.externalUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 mt-3 text-xs text-brand-300 hover:text-white transition-colors"
                         >
                           <FiExternalLink />
-                          {result.profile.externalUrl}
+                          {result.apifyData.externalUrl}
                         </a>
                       )}
                     </div>
@@ -514,8 +545,8 @@ export default function InstagramAnalyzerPage() {
                     animate={{ scale: 1 }}
                     className="glass-card p-6 flex flex-col items-center justify-center"
                   >
-                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3">
-                      Risk Score
+                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3 text-center">
+                      Final Hybrid Risk Score
                     </div>
                     <div className="relative w-28 h-28">
                       <svg
@@ -535,10 +566,10 @@ export default function InstagramAnalyzerPage() {
                           cy="60"
                           r="50"
                           fill="none"
-                          stroke={getRiskGaugeColor(result.analysis.riskScore)}
+                          stroke={getRiskGaugeColor(result.hybridAnalysis.finalRiskScore)}
                           strokeWidth="10"
                           strokeLinecap="round"
-                          strokeDasharray={`${(result.analysis.riskScore / 100) * 314} 314`}
+                          strokeDasharray={`${(result.hybridAnalysis.finalRiskScore / 100) * 314} 314`}
                           className="transition-all duration-1000"
                         />
                       </svg>
@@ -546,10 +577,10 @@ export default function InstagramAnalyzerPage() {
                         <span
                           className="text-3xl font-bold"
                           style={{
-                            color: getRiskGaugeColor(result.analysis.riskScore),
+                            color: getRiskGaugeColor(result.hybridAnalysis.finalRiskScore),
                           }}
                         >
-                          {result.analysis.riskScore}
+                          {Math.round(result.hybridAnalysis.finalRiskScore)}
                         </span>
                       </div>
                     </div>
@@ -562,28 +593,28 @@ export default function InstagramAnalyzerPage() {
                     transition={{ delay: 0.1 }}
                     className="glass-card p-6 flex flex-col items-center justify-center"
                   >
-                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3">
-                      Fake Probability
+                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3 text-center">
+                      Final Fake Probability (Confidence)
                     </div>
                     <div
                       className="text-5xl font-extrabold mb-1"
                       style={{
-                        color: getRiskGaugeColor(result.analysis.fakeProbability),
+                        color: getRiskGaugeColor(result.hybridAnalysis.finalFakeProbability),
                       }}
                     >
-                      {result.analysis.fakeProbability}%
+                      {Math.round(result.hybridAnalysis.finalFakeProbability)}%
                     </div>
                     <div className="w-full mt-2 h-2 rounded-full bg-surface-700 overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{
-                          width: `${result.analysis.fakeProbability}%`,
+                          width: `${result.hybridAnalysis.finalFakeProbability}%`,
                         }}
                         transition={{ duration: 1, ease: "easeOut" }}
                         className="h-full rounded-full"
                         style={{
                           backgroundColor: getRiskGaugeColor(
-                            result.analysis.fakeProbability
+                            result.hybridAnalysis.finalFakeProbability
                           ),
                         }}
                       />
@@ -597,8 +628,8 @@ export default function InstagramAnalyzerPage() {
                     transition={{ delay: 0.2 }}
                     className={`glass-card p-6 flex flex-col items-center justify-center border ${verdictConfig?.border}`}
                   >
-                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3">
-                      Verdict
+                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3 text-center">
+                      Final Verdict
                     </div>
                     <div
                       className={`w-16 h-16 rounded-full ${verdictConfig?.bg} flex items-center justify-center mb-3 ${verdictConfig?.glow} shadow-lg`}
@@ -621,8 +652,49 @@ export default function InstagramAnalyzerPage() {
                   </motion.div>
                 </div>
 
+                {/* ---- Comparison Chart ---- */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="glass-card p-6 border-brand-500/20"
+                >
+                    <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                      <FiShield className="text-cyber-blue" />
+                      Model Comparison
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[
+                        { label: "Local Behavioral Analysis", score: result.internalAnalysis?.fakeProbability || 0, desc: "Internal ML Score", weight: `${result.hybridAnalysis.weights.internal}%` },
+                        { label: "Advanced Ensemble Verification", score: result.externalAnalysis?.unavailable ? 0 : (result.externalAnalysis?.fakeProbability || 0), desc: "External API Score", weight: `${result.hybridAnalysis.weights.external}%` },
+                        { label: "Hybrid AI Fraud Detection Score", score: result.hybridAnalysis.finalFakeProbability, desc: "Final Hybrid Score", weight: "100%" },
+                      ].map((model, idx) => (
+                        <div key={idx} className="bg-surface-800/50 border border-brand-500/10 p-4 rounded-xl">
+                          <div className="flex justify-between items-end mb-2">
+                            <div>
+                              <div className="text-sm font-semibold text-white">{model.label}</div>
+                              <div className="text-[10px] text-slate-500">{model.desc} • Wt: {model.weight}</div>
+                            </div>
+                            <div className={`text-lg font-bold ${getRiskGaugeColor(model.score || 0)}`}>
+                              {Math.round(model.score || 0)}%
+                            </div>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-surface-700 overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${model.score}%` }}
+                              transition={{ duration: 0.8, delay: 0.5 + (idx * 0.1) }}
+                              className="h-full rounded-full"
+                              style={{ backgroundColor: getRiskGaugeColor(model.score || 0) }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                </motion.div>
+
                 {/* ---- Risk Reasons ---- */}
-                {result.analysis.reasons.length > 0 && (
+                {result.hybridAnalysis.combinedReasons.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -634,7 +706,7 @@ export default function InstagramAnalyzerPage() {
                       Risk Analysis Breakdown
                     </h3>
                     <div className="space-y-3">
-                      {result.analysis.reasons.map((reason, i) => (
+                      {result.hybridAnalysis.combinedReasons.map((reason, i) => (
                         <motion.div
                           key={i}
                           initial={{ opacity: 0, x: -10 }}
@@ -676,6 +748,50 @@ export default function InstagramAnalyzerPage() {
                             </p>
                           </div>
                         </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ---- ML Ensemble Breakdown ---- */}
+                {result.internalAnalysis?.tabularScore !== undefined && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="glass-card p-6 border-brand-500/20"
+                  >
+                    <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                      <FiShield className="text-cyber-green" />
+                      Internal Analysis Detail
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {[
+                        { label: "Profile Metadata Analysis", score: result.internalAnalysis.tabularScore, desc: "Account statistics & structural data", weight: "40%" },
+                        { label: "Image Authenticity Analysis", score: result.internalAnalysis.imageScore, desc: "Profile picture verification & impersonation check", weight: "30%" },
+                        { label: "Bio & Content Analysis", score: result.internalAnalysis.bioScore, desc: "Spam, phishing & language patterns", weight: "20%" },
+                        { label: "Behavioral Anomaly Detection", score: result.internalAnalysis.anomalyScore, desc: "Outlier activity & bot-like behavior", weight: "10%" },
+                      ].map((model, idx) => (
+                        <div key={idx} className="bg-surface-800/50 border border-brand-500/10 p-4 rounded-xl">
+                          <div className="flex justify-between items-end mb-2">
+                            <div>
+                              <div className="text-sm font-semibold text-white">{model.label}</div>
+                              <div className="text-[10px] text-slate-500">{model.desc} • Wt: {model.weight}</div>
+                            </div>
+                            <div className={`text-lg font-bold ${getRiskGaugeColor(model.score || 0)}`}>
+                              {Math.round(model.score || 0)}%
+                            </div>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-surface-700 overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${model.score}%` }}
+                              transition={{ duration: 0.8, delay: 0.5 + (idx * 0.1) }}
+                              className="h-full rounded-full"
+                              style={{ backgroundColor: getRiskGaugeColor(model.score || 0) }}
+                            />
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </motion.div>
@@ -738,6 +854,41 @@ export default function InstagramAnalyzerPage() {
                         This may be due to network configuration or wallet balance.
                       </p>
                     </div>
+                  )}
+                </motion.div>
+
+                {/* ---- Human Feedback Form ---- */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="mt-8"
+                >
+                  {!showFeedback ? (
+                    <div className="glass-card p-6 text-center border-brand-500/20">
+                      <h3 className="text-white font-semibold text-lg mb-2">
+                        Was this prediction accurate?
+                      </h3>
+                      <p className="text-sm text-slate-400 mb-4">
+                        Your feedback helps improve our AI model for everyone.
+                      </p>
+                      <div className="flex justify-center gap-4">
+                        <button
+                          onClick={() => setShowFeedback(true)}
+                          className="px-6 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:text-white hover:bg-surface-700 transition-colors text-sm font-medium"
+                        >
+                          Incorrect — Submit Feedback
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <FeedbackForm
+                      username={result.apifyData.username}
+                      originalPrediction={result.hybridAnalysis.finalVerdict}
+                      originalFakeProbability={result.hybridAnalysis.finalFakeProbability}
+                      profileSnapshot={result.apifyData}
+                      onClose={() => setShowFeedback(false)}
+                    />
                   )}
                 </motion.div>
               </motion.div>

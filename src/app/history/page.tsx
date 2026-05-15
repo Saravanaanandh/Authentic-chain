@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { FiRefreshCw, FiSearch, FiCheckCircle, FiAlertTriangle, FiXCircle, FiHash, FiLink, FiUsers, FiFileText, FiClock, FiDatabase, FiImage, FiTrendingUp, FiInstagram, FiFacebook, FiTwitter, FiLinkedin, FiList } from "react-icons/fi";
+import { FiRefreshCw, FiSearch, FiCheckCircle, FiAlertTriangle, FiXCircle, FiHash, FiLink, FiUsers, FiFileText, FiClock, FiDatabase, FiImage, FiTrendingUp, FiInstagram, FiList } from "react-icons/fi";
 
 interface Profile {
   id: string; username: string; followers: number; posts: number;
@@ -16,9 +16,6 @@ interface Profile {
 
 const platformIcons: Record<string, React.ReactNode> = {
   Instagram: <FiInstagram className="inline" />,
-  Facebook: <FiFacebook className="inline" />,
-  Twitter: <FiTwitter className="inline" />,
-  LinkedIn: <FiLinkedin className="inline" />,
 };
 
 const badge = {
@@ -35,7 +32,6 @@ export default function HistoryPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [platformFilter, setPlatformFilter] = useState("All");
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // Tabs: 'my' or 'global'. If admin, default to 'global'
@@ -70,8 +66,7 @@ export default function HistoryPage() {
 
   const filtered = tabFiltered.filter((p) => {
     const matchesSearch = p.username.toLowerCase().includes(search.toLowerCase());
-    const matchesPlatform = platformFilter === "All" || p.platform === platformFilter;
-    return matchesSearch && matchesPlatform;
+    return matchesSearch;
   });
 
   // Global Most Analyzed Profile
@@ -150,17 +145,6 @@ export default function HistoryPage() {
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input type="text" placeholder="Search by username…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-surface-800/60 border border-brand-500/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-400 transition-all" />
             </div>
-            <select 
-              value={platformFilter} 
-              onChange={(e) => setPlatformFilter(e.target.value)}
-              className="w-full sm:w-auto bg-surface-800/60 border border-brand-500/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-400 transition-all"
-            >
-              <option value="All">All Platforms</option>
-              <option value="Instagram">Instagram</option>
-              <option value="Facebook">Facebook</option>
-              <option value="Twitter">Twitter</option>
-              <option value="LinkedIn">LinkedIn</option>
-            </select>
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={fetchAll} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600/20 border border-brand-500/30 text-brand-300 text-sm font-medium hover:bg-brand-600/30 transition-colors cursor-pointer">
               <FiRefreshCw className={loading ? "animate-spin" : ""} /> Refresh
             </motion.button>
@@ -215,7 +199,7 @@ export default function HistoryPage() {
                         <motion.div initial={{ width: 0 }} animate={{ width: `${p.riskScore}%` }} transition={{ duration: 0.8 }} className="h-full rounded-full" style={{ background: p.riskScore <= 30 ? "#10b981" : p.riskScore <= 60 ? "#f59e0b" : "#ef4444" }} />
                       </div>
                       <p className="text-xs text-slate-500 flex justify-between">
-                        <span>Risk: <strong className={b.color}>{p.riskScore}%</strong></span>
+                        <span>Risk: <strong className={b.color}>{Math.round(p.riskScore)}%</strong></span>
                         {activeTab === "global" && p.analyzedBy && (
                           <span className="text-brand-300 flex items-center gap-1"><FiUsers className="inline" /> {p.analyzedBy.length}</span>
                         )}

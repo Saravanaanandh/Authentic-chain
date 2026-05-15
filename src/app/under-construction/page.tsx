@@ -30,7 +30,7 @@ export default function UnderConstructionPage() {
           </h1>
           
           <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-            This feature is currently under development. We are working hard to bring you analyzers for Facebook, Twitter, and LinkedIn soon. Stay tuned!
+            This feature is currently under development. We are working hard to bring you this feature soon. Stay tuned!
           </p>
 
           <Link href="/">

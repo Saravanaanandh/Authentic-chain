@@ -31,7 +31,16 @@ export interface IInstagramAnalysis extends Document {
       detail: string;
       weight: number;
     }[];
+    tabularScore?: number;
+    imageScore?: number;
+    bioScore?: number;
+    anomalyScore?: number;
   };
+  externalAnalysis?: any;
+  internalAnalysis?: any;
+  hybridAnalysis?: any;
+  sourcePlatform?: string;
+  apifyRawData?: any;
   blockchainHash: string;
   blockchainTx: string;
   scannedBy: string;            // user email or "anonymous"
@@ -79,7 +88,16 @@ const InstagramAnalysisSchema = new Schema<IInstagramAnalysis>(
           weight: { type: Number, required: true },
         },
       ],
+      tabularScore: { type: Number },
+      imageScore: { type: Number },
+      bioScore: { type: Number },
+      anomalyScore: { type: Number },
     },
+    externalAnalysis: { type: Schema.Types.Mixed },
+    internalAnalysis: { type: Schema.Types.Mixed },
+    hybridAnalysis: { type: Schema.Types.Mixed },
+    sourcePlatform: { type: String, default: "instagram" },
+    apifyRawData: { type: Schema.Types.Mixed },
     blockchainHash: {
       type: String,
       default: "",

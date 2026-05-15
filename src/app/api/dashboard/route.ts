@@ -15,10 +15,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     // ---------- Filters ----------
-    let filter = searchParams.get("filter")?.toUpperCase() || "ALL";
-    if (filter === "FAKE") filter = "HIGHLY FAKE"; // Map FAKE to HIGHLY FAKE for query
     const search = searchParams.get("search")?.toLowerCase() || "";
-    const platform = searchParams.get("platform") || "All";
     
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "10", 10)));
@@ -39,16 +36,8 @@ export async function GET(req: NextRequest) {
     // 2. Query Profiles
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: any = {};
-    if (filter && filter !== "ALL") {
-      query["analysis.verdict"] = filter;
-    }
     if (search) {
       query.username = { $regex: search, $options: "i" };
-    }
-    // Hardcode Instagram for now, but structure for future scaling
-    if (platform !== "All" && platform !== "Instagram") {
-      // If platform is Facebook, Twitter, LinkedIn, we have 0 since they aren't implemented
-      query._id = null; // force empty
     }
 
     const [totalFiltered, docs] = await Promise.all([
