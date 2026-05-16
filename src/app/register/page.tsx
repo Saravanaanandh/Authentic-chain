@@ -119,13 +119,13 @@ export default function RegisterPage() {
           <div className="mt-4 flex flex-col gap-3">
             <button 
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-300 dark:border-zinc-800 text-black dark:text-white font-semibold hover:bg-gray-200 dark:bg-zinc-800 transition-all"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-300 dark:border-zinc-800 text-black dark:text-white font-semibold hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all"
             >
               Google
             </button>
             <button 
               onClick={handleInstagramSignIn}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-300 dark:border-zinc-800 text-black dark:text-white font-semibold hover:bg-gray-200 dark:bg-zinc-800 transition-all"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-300 dark:border-zinc-800 text-black dark:text-white font-semibold hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all"
             >
               <FiInstagram className="text-brand-700 dark:text-brand-400" /> Instagram
             </button>

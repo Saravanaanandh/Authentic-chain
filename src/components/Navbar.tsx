@@ -65,7 +65,7 @@ export default function Navbar() {
                   className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
                       ? "text-black dark:text-white"
-                      : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
                   }`}
                 >
                   {isActive && (
@@ -119,7 +119,7 @@ export default function Navbar() {
           {/* Mobile toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white"
+            className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
             aria-label="Toggle mobile menu"
           >
             {mobileOpen ? <FiX size={22} /> : <FiMenu size={22} />}
@@ -145,7 +145,7 @@ export default function Navbar() {
                   className={`block px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                     pathname === link.href
                       ? "bg-brand-600/20 text-white border border-gray-300 dark:border-zinc-800"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:bg-zinc-800 hover:text-black dark:text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white"
                   }`}
                 >
                   {link.label}
@@ -157,7 +157,7 @@ export default function Navbar() {
                   <Link
                     href="/profile"
                     onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-2.5 text-sm font-medium rounded-lg text-brand-700 dark:text-brand-300 hover:bg-gray-200 dark:bg-zinc-800 hover:text-black dark:text-white transition-colors"
+                    className="block px-4 py-2.5 text-sm font-medium rounded-lg text-brand-700 dark:text-brand-300 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <FiUser /> Profile
@@ -167,7 +167,7 @@ export default function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-2.5 text-sm font-medium rounded-lg text-brand-700 dark:text-brand-400 hover:bg-gray-200 dark:bg-zinc-800 hover:text-black dark:text-white transition-colors"
+                    className="block px-4 py-2.5 text-sm font-medium rounded-lg text-brand-700 dark:text-brand-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white transition-colors"
                   >
                     Login
                   </Link>

@@ -37,7 +37,7 @@ export default function DeleteAccountModal({ isOpen, onClose, onConfirm, isGoogl
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-1 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white transition-colors"
+              className="absolute top-4 right-4 p-1 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
             >
               <FiX size={20} />
             </button>
@@ -69,7 +69,7 @@ export default function DeleteAccountModal({ isOpen, onClose, onConfirm, isGoogl
               <div className="flex w-full gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-black dark:text-white font-medium hover:bg-gray-200 dark:bg-zinc-800 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-black dark:text-white font-medium hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
                 >
                   Cancel
                 </button>

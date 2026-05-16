@@ -40,7 +40,7 @@ export default function ProfileNotFound({ username, onRetry }: ProfileNotFoundPr
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
         onClick={onRetry}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-slate-600 text-black dark:text-white font-semibold text-sm hover:bg-gray-200 dark:bg-zinc-800 transition-all cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-slate-600 text-black dark:text-white font-semibold text-sm hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all cursor-pointer"
       >
         <FiRefreshCcw />
         Try Another Profile

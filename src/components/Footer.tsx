@@ -12,10 +12,10 @@ export default function Footer() {
           <span>FakeID Analyzer &copy; {new Date().getFullYear()}</span>
         </div>
         <div className="flex items-center gap-4 text-gray-500 dark:text-gray-400 text-xs">
-          <Link href="/privacy-policy" className="hover:text-black dark:text-white transition-colors">Privacy Policy</Link>
-          <Link href="/data-deletion" className="hover:text-black dark:text-white transition-colors">Data Deletion</Link>
+          <Link href="/privacy-policy" className="hover:text-black dark:hover:text-white transition-colors">Privacy Policy</Link>
+          <Link href="/data-deletion" className="hover:text-black dark:hover:text-white transition-colors">Data Deletion</Link>
           <span className="flex items-center gap-1">Developed By<FiHeart className="text-cyber-pink" /> Fantastic Four</span>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-black dark:text-white transition-colors"><FiGithub size={16} /></a>
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-black dark:hover:text-white transition-colors"><FiGithub size={16} /></a>
         </div>
       </div>
     </footer>

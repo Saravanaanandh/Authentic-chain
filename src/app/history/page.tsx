@@ -179,13 +179,13 @@ export default function HistoryPage() {
               <div className="bg-gray-100 dark:bg-zinc-900/60 p-1 rounded-xl flex items-center gap-1 border border-gray-300 dark:border-zinc-800">
                 <button
                   onClick={() => setActiveTab("my")}
-                  className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === "my" ? "bg-brand-600 text-white shadow-lg" : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white"}`}
+                  className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === "my" ? "bg-brand-600 text-white shadow-lg" : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"}`}
                 >
                   My History
                 </button>
                 <button
                   onClick={() => setActiveTab("global")}
-                  className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === "global" ? "bg-brand-600 text-white shadow-lg" : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white"}`}
+                  className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === "global" ? "bg-brand-600 text-white shadow-lg" : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"}`}
                 >
                   Global History
                 </button>

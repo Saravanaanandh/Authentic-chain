@@ -156,7 +156,7 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-black dark:text-white font-medium hover:bg-gray-200 dark:bg-zinc-800 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-black dark:text-white font-medium hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
               >
                 <FiLogOut /> Secure Logout
               </button>

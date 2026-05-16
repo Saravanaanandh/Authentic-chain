@@ -252,7 +252,7 @@ export default function InstagramAnalyzerPage() {
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all ${
                     isActive
                       ? "bg-brand-600 text-white shadow-lg shadow-brand-600/30"
-                      : "bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700"
+                      : "bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 border border-gray-300 dark:border-zinc-700"
                   }`}
                 >
                   <Icon className={isActive ? "text-black dark:text-white" : "text-brand-700 dark:text-brand-400"} />
@@ -325,7 +325,7 @@ export default function InstagramAnalyzerPage() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={handleClear}
-                      className="flex items-center gap-1 px-4 py-3.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:border-slate-500 transition-all text-sm cursor-pointer"
+                      className="flex items-center gap-1 px-4 py-3.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:border-slate-500 transition-all text-sm cursor-pointer"
                     >
                       <FiX />
                       Clear
@@ -527,7 +527,7 @@ export default function InstagramAnalyzerPage() {
                           href={result.apifyData.externalUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 mt-3 text-xs text-brand-700 dark:text-brand-300 hover:text-black dark:text-white transition-colors"
+                          className="inline-flex items-center gap-1 mt-3 text-xs text-brand-700 dark:text-brand-300 hover:text-black dark:hover:text-white transition-colors"
                         >
                           <FiExternalLink />
                           {result.apifyData.externalUrl}
@@ -875,7 +875,7 @@ export default function InstagramAnalyzerPage() {
                       <div className="flex justify-center gap-4">
                         <button
                           onClick={() => setShowFeedback(true)}
-                          className="px-6 py-2.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 transition-colors text-sm font-medium"
+                          className="px-6 py-2.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors text-sm font-medium"
                         >
                           Incorrect — Submit Feedback
                         </button>

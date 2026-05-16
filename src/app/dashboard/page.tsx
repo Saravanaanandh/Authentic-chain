@@ -162,7 +162,7 @@ export default function DashboardPage() {
           {sidebarLinks.map(link => {
             const active = pathname === link.href;
             return (
-              <Link key={link.href} href={link.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? "bg-brand-600/20 text-white border border-gray-300 dark:border-zinc-800" : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800"}`}>
+              <Link key={link.href} href={link.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? "bg-brand-600/20 text-white border border-gray-300 dark:border-zinc-800" : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800"}`}>
                 <link.icon className={active ? "text-brand-700 dark:text-brand-400" : ""} />
                 {link.label}
               </Link>
@@ -180,10 +180,10 @@ export default function DashboardPage() {
             <span className="text-lg font-bold gradient-text hidden sm:inline">FakeID Shield</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:text-white transition-colors flex items-center gap-1">
+            <Link href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1">
               <FiHome /> Home
             </Link>
-            <Link href="/analyze" className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:text-white transition-colors flex items-center gap-1">
+            <Link href="/analyze" className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1">
               <FiPlusCircle /> New Scan
             </Link>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-600/20 text-brand-700 dark:text-brand-300 border border-gray-300 dark:border-zinc-800">Dashboard</span>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">Monitor and manage historical profile integrity assessments.</p>
             </div>
             <div className="flex items-center gap-3">
-              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-200 dark:bg-zinc-800 transition-colors cursor-pointer">
+              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer">
                 <FiDownload /> Export CSV
               </motion.button>
               <Link href="/analyze">
@@ -235,7 +235,7 @@ export default function DashboardPage() {
               <input type="text" placeholder="Search username or scan ID…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-gray-500 dark:text-gray-400 focus:outline-none focus:border-brand-400 transition-all" />
             </div>
             {/* Refresh */}
-            <motion.button whileHover={{ rotate: 180 }} transition={{ duration: 0.4 }} onClick={() => fetchData(pagination.page)} className="p-2.5 rounded-lg border border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white transition-colors cursor-pointer">
+            <motion.button whileHover={{ rotate: 180 }} transition={{ duration: 0.4 }} onClick={() => fetchData(pagination.page)} className="p-2.5 rounded-lg border border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors cursor-pointer">
               <FiRefreshCw className={loading ? "animate-spin" : ""} />
             </motion.button>
           </div>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                     const Icon = b.icon;
                     const dt = new Date(p.date);
                     return (
-                      <motion.div key={p.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-center px-5 py-4 border-b border-brand-500/5 hover:bg-gray-100 dark:bg-zinc-900/30 transition-colors group">
+                      <motion.div key={p.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-center px-5 py-4 border-b border-brand-500/5 hover:bg-gray-100 dark:hover:bg-zinc-800/30 transition-colors group">
                         {/* Profile Info */}
                         <div className="col-span-3 flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-600/30 to-cyber-purple/30 flex items-center justify-center text-white text-sm font-bold border border-gray-300 dark:border-zinc-800 shrink-0">
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                         <div className="col-span-2 flex justify-end gap-1">
                           {editingId === p.username ? (
                             <>
-                              <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-black dark:text-white transition-colors cursor-pointer" title="Cancel">
+                              <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer" title="Cancel">
                                 <FiX size={14} />
                               </button>
                               <button disabled={isActionLoading} onClick={(e) => handleSaveEdit(p.username, e)} className="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 transition-colors cursor-pointer" title="Save">
@@ -364,17 +364,17 @@ export default function DashboardPage() {
                   Showing <strong className="text-gray-700 dark:text-gray-300">{(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.totalFiltered)}</strong> of <strong className="text-gray-700 dark:text-gray-300">{pagination.totalFiltered}</strong> historical verifications
                 </p>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => goPage(pagination.page - 1)} disabled={pagination.page <= 1} className="px-2.5 py-1.5 rounded-lg text-xs text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
+                  <button onClick={() => goPage(pagination.page - 1)} disabled={pagination.page <= 1} className="px-2.5 py-1.5 rounded-lg text-xs text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
                     <FiChevronLeft /> Previous
                   </button>
                   {pageNumbers().map((n, i) =>
                     typeof n === "string" ? (
                       <span key={`dots-${i}`} className="px-1.5 text-xs text-slate-600">…</span>
                     ) : (
-                      <button key={n} onClick={() => goPage(n)} className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${pagination.page === n ? "bg-brand-600 text-white shadow-lg shadow-brand-600/30" : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800"}`}>{n}</button>
+                      <button key={n} onClick={() => goPage(n)} className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${pagination.page === n ? "bg-brand-600 text-white shadow-lg shadow-brand-600/30" : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800"}`}>{n}</button>
                     )
                   )}
-                  <button onClick={() => goPage(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="px-2.5 py-1.5 rounded-lg text-xs text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
+                  <button onClick={() => goPage(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="px-2.5 py-1.5 rounded-lg text-xs text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
                     Next <FiChevronRight />
                   </button>
                 </div>

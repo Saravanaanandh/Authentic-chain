@@ -33,7 +33,7 @@ export default function ThemeToggle() {
             key={opt.value}
             onClick={() => setTheme(opt.value)}
             className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors z-10 ${
-              isActive ? "text-black dark:text-white" : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white"
+              isActive ? "text-black dark:text-white" : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
             }`}
           >
             {isActive && (

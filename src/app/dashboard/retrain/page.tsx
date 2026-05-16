@@ -132,7 +132,7 @@ export default function RetrainDashboard() {
                 </thead>
                 <tbody className="text-sm">
                   {pendingFeedback.map((fb, i) => (
-                    <tr key={i} className="border-b border-surface-800 hover:bg-gray-100 dark:bg-zinc-900/30">
+                    <tr key={i} className="border-b border-surface-800 hover:bg-gray-100 dark:hover:bg-zinc-800/30">
                       <td className="p-3 font-medium text-black dark:text-white">@{fb.username}</td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded text-xs ${fb.originalPrediction === "Fake" ? "bg-cyber-red/20 text-cyber-red" : "bg-cyber-green/20 text-cyber-green"}`}>
