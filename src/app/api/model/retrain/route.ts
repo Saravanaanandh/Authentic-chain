@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         const newVerdict = verdictMap[fb.userCorrectedLabel] || fb.userCorrectedLabel;
 
         // Update the latest analysis for that username with the corrected verdict
-        await InstagramAnalysis.updateOne(
+        await InstagramAnalysis.findOneAndUpdate(
           { username: fb.username },
           {
             $set: {
