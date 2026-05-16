@@ -62,8 +62,6 @@ export async function POST(req: NextRequest) {
           {
             $set: {
               "analysis.verdict": newVerdict,
-              "analysis.retrainedFrom": fb.originalPrediction,
-              "analysis.retrainedAt": new Date(),
             },
           },
           { sort: { createdAt: -1 } }
