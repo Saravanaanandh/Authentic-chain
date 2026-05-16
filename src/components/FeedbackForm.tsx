@@ -71,14 +71,14 @@ export default function FeedbackForm({
     return (
       <div className="glass-card p-6 text-center border-cyber-green/30 bg-cyber-green/5">
         <FiCheckCircle className="mx-auto text-4xl text-cyber-green mb-4" />
-        <h3 className="text-xl font-bold text-white mb-2">Feedback Submitted!</h3>
-        <p className="text-sm text-slate-400 mb-4">
+        <h3 className="text-xl font-bold text-black dark:text-white mb-2">Feedback Submitted!</h3>
+        <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
           Thank you. Your correction helps improve the AI model.
         </p>
         {onClose && (
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-surface-700 hover:bg-surface-600 rounded-lg text-sm text-white transition-colors"
+            className="px-4 py-2 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:bg-zinc-700 rounded-lg text-sm text-black dark:text-white transition-colors"
           >
             Close
           </button>
@@ -90,8 +90,8 @@ export default function FeedbackForm({
   return (
     <div className="glass-card p-6">
       <div className="flex items-center gap-2 mb-4">
-        <FiMessageSquare className="text-brand-400 text-xl" />
-        <h3 className="text-lg font-bold text-white">Submit Correction</h3>
+        <FiMessageSquare className="text-brand-700 dark:text-brand-400 text-xl" />
+        <h3 className="text-lg font-bold text-black dark:text-white">Submit Correction</h3>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,13 +102,13 @@ export default function FeedbackForm({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Actual Result <span className="text-cyber-red">*</span>
           </label>
           <select
             value={form.userCorrectedLabel}
             onChange={(e) => setForm({ ...form, userCorrectedLabel: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-brand-500/20 text-white focus:outline-none focus:border-brand-400/60 text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-black dark:text-white focus:outline-none focus:border-brand-400/60 text-sm"
             required
           >
             <option value="">Select correct label...</option>
@@ -119,13 +119,13 @@ export default function FeedbackForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Reason <span className="text-cyber-red">*</span>
           </label>
           <select
             value={form.feedbackReason}
             onChange={(e) => setForm({ ...form, feedbackReason: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-brand-500/20 text-white focus:outline-none focus:border-brand-400/60 text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-black dark:text-white focus:outline-none focus:border-brand-400/60 text-sm"
             required
           >
             <option value="">Select reason...</option>
@@ -140,13 +140,13 @@ export default function FeedbackForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Notes / Explanation (Optional)
           </label>
           <textarea
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-brand-500/20 text-white focus:outline-none focus:border-brand-400/60 text-sm resize-none"
+            className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-black dark:text-white focus:outline-none focus:border-brand-400/60 text-sm resize-none"
             rows={3}
             placeholder="Add any extra details..."
           />
@@ -157,7 +157,7 @@ export default function FeedbackForm({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 text-sm transition-colors"
+              className="px-4 py-2 rounded-lg border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:border-slate-500 text-sm transition-colors"
             >
               Cancel
             </button>

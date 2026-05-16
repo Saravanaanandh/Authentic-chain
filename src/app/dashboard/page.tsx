@@ -9,7 +9,7 @@ import {
   FiShield, FiAlertTriangle, FiCheckCircle, FiXCircle,
   FiActivity, FiTarget, FiTrendingUp, FiHome, FiPlusCircle,
   FiGrid, FiClock, FiExternalLink, FiRefreshCw, FiCpu,
-  FiInstagram, FiList
+  FiInstagram, FiList, FiEdit2, FiTrash2, FiSave, FiX
 } from "react-icons/fi";
 
 
@@ -54,6 +54,12 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState("");
   const [isMounted, setIsMounted] = useState(false);
 
+  // Admin edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editVerdict, setEditVerdict] = useState<string>("");
+  const [editScore, setEditScore] = useState<number>(0);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+
   useEffect(() => setIsMounted(true), []);
 
   const fetchData = useCallback(async (pg = 1) => {
@@ -87,6 +93,49 @@ export default function DashboardPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleDelete = async (username: string) => {
+    if (!confirm("Are you sure you want to permanently delete this profile?")) return;
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/profiles/${encodeURIComponent(username)}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+      fetchData(pagination.page);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete");
+    }
+    setIsActionLoading(false);
+  };
+
+  const startEdit = (p: DashboardProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(p.username);
+    setEditVerdict(p.result === "FAKE" ? "HIGHLY FAKE" : p.result);
+    setEditScore(p.riskScore);
+  };
+
+  const handleSaveEdit = async (username: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/profiles/${encodeURIComponent(username)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ verdict: editVerdict, riskScore: editScore })
+      });
+      if (res.ok) {
+        setEditingId(null);
+        fetchData(pagination.page);
+      } else {
+        alert("Failed to update");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update");
+    }
+    setIsActionLoading(false);
+  };
+
   /* ---- Pagination display helper ---- */
   const pageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -105,16 +154,16 @@ export default function DashboardPage() {
   return (
     <div className="flex min-h-screen">
       {/* ===== Sidebar ===== */}
-      <aside className="hidden lg:flex flex-col w-56 bg-surface-800/50 border-r border-brand-500/10 px-4 py-6 fixed inset-y-0 left-0 z-40">
+      <aside className="hidden lg:flex flex-col w-56 bg-gray-100 dark:bg-zinc-900/50 border-r border-gray-300 dark:border-zinc-800 px-4 py-6 fixed inset-y-0 left-0 z-40">
         <div className="flex items-center gap-2 mb-2 px-2">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold">Verification Center</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 font-semibold">Verification Center</span>
         </div>
         <nav className="flex flex-col gap-1 mt-4">
           {sidebarLinks.map(link => {
             const active = pathname === link.href;
             return (
-              <Link key={link.href} href={link.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? "bg-brand-600/20 text-white border border-brand-500/30" : "text-slate-400 hover:text-white hover:bg-surface-700"}`}>
-                <link.icon className={active ? "text-brand-400" : ""} />
+              <Link key={link.href} href={link.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? "bg-brand-600/20 text-white border border-gray-300 dark:border-zinc-800" : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800"}`}>
+                <link.icon className={active ? "text-brand-700 dark:text-brand-400" : ""} />
                 {link.label}
               </Link>
             );
@@ -125,19 +174,19 @@ export default function DashboardPage() {
       {/* ===== Main Content ===== */}
       <div className="flex-1 lg:ml-56">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-surface-900/80 backdrop-blur-xl border-b border-brand-500/10 px-4 sm:px-8 py-4 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-white dark:bg-black/80 backdrop-blur-xl border-b border-gray-300 dark:border-zinc-800 px-4 sm:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FiShield className="text-brand-400 text-xl" />
+            <FiShield className="text-brand-700 dark:text-brand-400 text-xl" />
             <span className="text-lg font-bold gradient-text hidden sm:inline">FakeID Shield</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-xs text-slate-500 hover:text-white transition-colors flex items-center gap-1">
+            <Link href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:text-white transition-colors flex items-center gap-1">
               <FiHome /> Home
             </Link>
-            <Link href="/analyze" className="text-xs text-slate-500 hover:text-white transition-colors flex items-center gap-1">
+            <Link href="/analyze" className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:text-white transition-colors flex items-center gap-1">
               <FiPlusCircle /> New Scan
             </Link>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-600/20 text-brand-300 border border-brand-500/30">Dashboard</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-600/20 text-brand-700 dark:text-brand-300 border border-gray-300 dark:border-zinc-800">Dashboard</span>
           </div>
         </header>
 
@@ -145,15 +194,15 @@ export default function DashboardPage() {
           {/* ---- Page Header ---- */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Verification Dashboard</h1>
-              <p className="text-sm text-slate-400 mt-1">Monitor and manage historical profile integrity assessments.</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-black dark:text-white">Verification Dashboard</h1>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">Monitor and manage historical profile integrity assessments.</p>
             </div>
             <div className="flex items-center gap-3">
-              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-500/20 text-slate-300 text-sm hover:bg-surface-700 transition-colors cursor-pointer">
+              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-200 dark:bg-zinc-800 transition-colors cursor-pointer">
                 <FiDownload /> Export CSV
               </motion.button>
               <Link href="/analyze">
-                <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-sm font-semibold shadow-lg shadow-brand-600/25 cursor-pointer">
+                <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-black dark:text-white text-sm font-semibold shadow-lg shadow-brand-600/25 cursor-pointer">
                   <FiShield /> New Verification
                 </motion.button>
               </Link>
@@ -167,13 +216,13 @@ export default function DashboardPage() {
               { label: "Threats Neutralized",   value: stats.fakeCount,    icon: FiAlertTriangle, accent: "text-cyber-red",   trend: `+5% alert rate` },
               { label: "Average Trust Score",   value: `${stats.avgTrustScore}%`, icon: FiCheckCircle, accent: "text-cyber-green", trend: "+2.1 pts improvement" },
             ].map((card, i) => (
-              <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card p-5 flex items-start justify-between group hover:border-brand-500/30 transition-all">
+              <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card p-5 flex items-start justify-between group hover:border-gray-300 dark:border-zinc-800 transition-all">
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">{card.label}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-1">{card.label}</p>
                   <p className={`text-3xl font-black ${card.accent}`}>{card.value}</p>
                   <p className="text-[10px] text-cyber-green mt-2 flex items-center gap-1"><FiTrendingUp /> {card.trend}</p>
                 </div>
-                <div className={`p-2.5 rounded-lg bg-surface-700/50 ${card.accent}`}><card.icon className="text-xl" /></div>
+                <div className={`p-2.5 rounded-lg bg-gray-200 dark:bg-zinc-800/50 ${card.accent}`}><card.icon className="text-xl" /></div>
               </motion.div>
             ))}
           </div>
@@ -182,11 +231,11 @@ export default function DashboardPage() {
           <div className="glass-card p-4 flex flex-col sm:flex-row items-center gap-3">
             {/* Search */}
             <div className="relative flex-1 w-full">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input type="text" placeholder="Search username or scan ID…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-surface-800/60 border border-brand-500/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-400 transition-all" />
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
+              <input type="text" placeholder="Search username or scan ID…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-gray-500 dark:text-gray-400 focus:outline-none focus:border-brand-400 transition-all" />
             </div>
             {/* Refresh */}
-            <motion.button whileHover={{ rotate: 180 }} transition={{ duration: 0.4 }} onClick={() => fetchData(pagination.page)} className="p-2.5 rounded-lg border border-brand-500/20 text-slate-400 hover:text-white transition-colors cursor-pointer">
+            <motion.button whileHover={{ rotate: 180 }} transition={{ duration: 0.4 }} onClick={() => fetchData(pagination.page)} className="p-2.5 rounded-lg border border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white transition-colors cursor-pointer">
               <FiRefreshCw className={loading ? "animate-spin" : ""} />
             </motion.button>
           </div>
@@ -194,7 +243,7 @@ export default function DashboardPage() {
           {/* ---- Data Table ---- */}
           <div className="glass-card overflow-hidden">
             {/* Table header */}
-            <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 border-b border-brand-500/10 text-[11px] uppercase tracking-wider font-semibold text-slate-500">
+            <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 border-b border-gray-300 dark:border-zinc-800 text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400">
               <div className="col-span-3">Profile Info</div>
               <div className="col-span-2 text-center">Detection Result</div>
               <div className="col-span-2 text-center">Risk Score</div>
@@ -204,13 +253,13 @@ export default function DashboardPage() {
 
             {loading ? (
               <div className="flex items-center justify-center py-20">
-                <FiRefreshCw className="text-2xl text-brand-400 animate-spin" />
+                <FiRefreshCw className="text-2xl text-brand-700 dark:text-brand-400 animate-spin" />
               </div>
             ) : profiles.length === 0 ? (
               <div className="text-center py-20">
                 <FiGrid className="mx-auto text-3xl text-slate-600 mb-3" />
-                <p className="text-slate-500 text-sm">No profiles found.</p>
-                <Link href="/analyze" className="text-brand-400 text-xs hover:underline mt-1 inline-block">Analyze your first profile →</Link>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No profiles found.</p>
+                <Link href="/analyze" className="text-brand-700 dark:text-brand-400 text-xs hover:underline mt-1 inline-block">Analyze your first profile →</Link>
               </div>
             ) : (
               <AnimatePresence mode="wait">
@@ -220,41 +269,86 @@ export default function DashboardPage() {
                     const Icon = b.icon;
                     const dt = new Date(p.date);
                     return (
-                      <motion.div key={p.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-center px-5 py-4 border-b border-brand-500/5 hover:bg-surface-800/30 transition-colors group">
+                      <motion.div key={p.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-center px-5 py-4 border-b border-brand-500/5 hover:bg-gray-100 dark:bg-zinc-900/30 transition-colors group">
                         {/* Profile Info */}
                         <div className="col-span-3 flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-600/30 to-cyber-purple/30 flex items-center justify-center text-white text-sm font-bold border border-brand-500/20 shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-600/30 to-cyber-purple/30 flex items-center justify-center text-white text-sm font-bold border border-gray-300 dark:border-zinc-800 shrink-0">
                             {p.username.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-white">@{p.username}</p>
-                            <p className="text-[10px] text-brand-300 font-mono mt-0.5 flex items-center gap-1">
+                            <p className="text-sm font-semibold text-black dark:text-white">@{p.username}</p>
+                            <p className="text-[10px] text-brand-700 dark:text-brand-300 font-mono mt-0.5 flex items-center gap-1">
                               {p.platform ? platformIcons[p.platform] : <FiList className="inline" />} {p.platform || "Unknown"}
                             </p>
                           </div>
                         </div>
                         {/* Result */}
                         <div className="col-span-2 flex justify-center">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${b.bg} ${b.fg} border ${b.border}`}>
-                            <Icon className="text-xs" /> {b.text}
-                          </span>
+                          {editingId === p.username ? (
+                            <select 
+                              value={editVerdict} 
+                              onChange={e => setEditVerdict(e.target.value)}
+                              className="bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-[10px] rounded px-1 py-1 text-black dark:text-white"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <option value="REAL">REAL</option>
+                              <option value="SUSPICIOUS">SUSPICIOUS</option>
+                              <option value="HIGHLY FAKE">FAKE</option>
+                            </select>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${b.bg} ${b.fg} border ${b.border}`}>
+                              <Icon className="text-xs" /> {b.text}
+                            </span>
+                          )}
                         </div>
                         {/* Risk score */}
                         <div className="col-span-2 flex flex-col items-center gap-1">
-                          <span className={`text-sm font-bold ${b.fg}`}>{Math.round(p.riskScore)}<span className="text-slate-500 font-normal">/100</span></span>
-                          <div className="w-full max-w-[80px] h-1 rounded-full bg-surface-700 overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${p.riskScore}%`, background: p.riskScore <= 30 ? "#10b981" : p.riskScore <= 60 ? "#f59e0b" : "#ef4444" }} />
-                          </div>
+                          {editingId === p.username ? (
+                            <input 
+                              type="range" min="0" max="100" 
+                              value={editScore} 
+                              onChange={e => setEditScore(Number(e.target.value))}
+                              className="w-16 accent-brand-500"
+                              onClick={e => e.stopPropagation()}
+                            />
+                          ) : (
+                            <>
+                              <span className={`text-sm font-bold ${b.fg}`}>{Math.round(p.riskScore)}<span className="text-gray-500 dark:text-gray-400 font-normal">/100</span></span>
+                              <div className="w-full max-w-[80px] h-1 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${p.riskScore}%`, background: p.riskScore <= 30 ? "#10b981" : p.riskScore <= 60 ? "#f59e0b" : "#ef4444" }} />
+                              </div>
+                            </>
+                          )}
                         </div>
                         {/* Date */}
                         <div className="col-span-3">
-                          <p className="text-sm text-slate-300">{dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" })}</p>
-                          <p className="text-[10px] text-slate-500">{dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">{dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" })}</p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400">{dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
                         </div>
                         {/* Actions */}
-                        <div className="col-span-2 flex justify-end gap-2">
-                          <button title="View Blockchain Tx" className="p-1.5 rounded-lg text-slate-500 hover:text-cyber-green hover:bg-cyber-green/10 transition-colors cursor-pointer"><FiExternalLink size={14} /></button>
-                          <button title="View Details" className="p-1.5 rounded-lg text-slate-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors cursor-pointer"><FiActivity size={14} /></button>
+                        <div className="col-span-2 flex justify-end gap-1">
+                          {editingId === p.username ? (
+                            <>
+                              <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-black dark:text-white transition-colors cursor-pointer" title="Cancel">
+                                <FiX size={14} />
+                              </button>
+                              <button disabled={isActionLoading} onClick={(e) => handleSaveEdit(p.username, e)} className="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 transition-colors cursor-pointer" title="Save">
+                                <FiSave size={14} />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={(e) => startEdit(p, e)} className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-brand-700 dark:text-brand-400 transition-colors cursor-pointer" title="Edit Profile">
+                                <FiEdit2 size={14} />
+                              </button>
+                              <button disabled={isActionLoading} onClick={(e) => { e.stopPropagation(); handleDelete(p.username); }} className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-cyber-red transition-colors cursor-pointer" title="Delete Profile">
+                                <FiTrash2 size={14} />
+                              </button>
+                            </>
+                          )}
+                          <Link href={`/instagram-analyzer?url=${encodeURIComponent('https://instagram.com/'+p.username)}`}>
+                            <button title="View Report" className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-brand-700 dark:text-brand-400 hover:bg-brand-500/10 transition-colors cursor-pointer"><FiActivity size={14} /></button>
+                          </Link>
                         </div>
                       </motion.div>
                     );
@@ -265,22 +359,22 @@ export default function DashboardPage() {
 
             {/* ---- Pagination ---- */}
             {!loading && profiles.length > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between px-5 py-4 border-t border-brand-500/10 gap-3">
-                <p className="text-xs text-slate-500">
-                  Showing <strong className="text-slate-300">{(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.totalFiltered)}</strong> of <strong className="text-slate-300">{pagination.totalFiltered}</strong> historical verifications
+              <div className="flex flex-col sm:flex-row items-center justify-between px-5 py-4 border-t border-gray-300 dark:border-zinc-800 gap-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Showing <strong className="text-gray-700 dark:text-gray-300">{(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.totalFiltered)}</strong> of <strong className="text-gray-700 dark:text-gray-300">{pagination.totalFiltered}</strong> historical verifications
                 </p>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => goPage(pagination.page - 1)} disabled={pagination.page <= 1} className="px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
+                  <button onClick={() => goPage(pagination.page - 1)} disabled={pagination.page <= 1} className="px-2.5 py-1.5 rounded-lg text-xs text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
                     <FiChevronLeft /> Previous
                   </button>
                   {pageNumbers().map((n, i) =>
                     typeof n === "string" ? (
                       <span key={`dots-${i}`} className="px-1.5 text-xs text-slate-600">…</span>
                     ) : (
-                      <button key={n} onClick={() => goPage(n)} className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${pagination.page === n ? "bg-brand-600 text-white shadow-lg shadow-brand-600/30" : "text-slate-400 hover:text-white hover:bg-surface-700"}`}>{n}</button>
+                      <button key={n} onClick={() => goPage(n)} className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${pagination.page === n ? "bg-brand-600 text-white shadow-lg shadow-brand-600/30" : "text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800"}`}>{n}</button>
                     )
                   )}
-                  <button onClick={() => goPage(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
+                  <button onClick={() => goPage(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="px-2.5 py-1.5 rounded-lg text-xs text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
                     Next <FiChevronRight />
                   </button>
                 </div>
@@ -295,7 +389,7 @@ export default function DashboardPage() {
                 <div className="p-2 rounded-lg bg-cyber-red/10 border border-cyber-red/30"><FiAlertTriangle className="text-cyber-red text-lg" /></div>
                 <div>
                   <p className="text-sm font-semibold text-cyber-red">Threat Alert</p>
-                  <p className="text-xs text-slate-400">{stats.fakeCount} fake profile{stats.fakeCount !== 1 ? "s" : ""} detected. Review flagged accounts for further action.</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300">{stats.fakeCount} fake profile{stats.fakeCount !== 1 ? "s" : ""} detected. Review flagged accounts for further action.</p>
                 </div>
               </div>
               <Link href="/history">

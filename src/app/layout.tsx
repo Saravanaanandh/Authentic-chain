@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "FakeID Shield — Fake Profile Detection System",
@@ -33,8 +34,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased bg-grid min-h-screen">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="font-sans antialiased bg-white dark:bg-black text-gray-700 dark:text-gray-300 min-h-screen transition-colors duration-300">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

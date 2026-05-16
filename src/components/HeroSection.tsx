@@ -91,7 +91,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-300 text-xs font-semibold tracking-wider uppercase"
+          className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full border border-gray-300 dark:border-zinc-800 bg-brand-500/10 text-brand-700 dark:text-brand-300 text-xs font-semibold tracking-wider uppercase"
         >
           <FiActivity className="text-cyber-green animate-pulse" />
           System Online — v1.0
@@ -99,14 +99,14 @@ export default function HeroSection() {
 
         {/* Main heading */}
         <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-tight tracking-tight mb-6">
-          <span className="text-white">Detect </span>
+          <span className="text-black dark:text-white">Detect </span>
           <span className="gradient-text">Fake Profiles</span>
           <br />
-          <span className="text-white">With </span>
+          <span className="text-black dark:text-white">With </span>
           <span className="gradient-text">Precision</span>
         </h1>
 
-        <p className="text-slate-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+        <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
           Our AI-driven multi-layer engine analyzes social media profiles in
           real-time — scoring risk across followers, posts, account age, images
           and more. Every result is anchored on the blockchain for
@@ -130,7 +130,7 @@ export default function HeroSection() {
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-xl border border-brand-500/30 text-brand-300 font-semibold text-base hover:bg-brand-500/10 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-8 py-3.5 rounded-xl border border-gray-300 dark:border-zinc-800 text-brand-700 dark:text-brand-300 font-semibold text-base hover:bg-brand-500/10 transition-all cursor-pointer"
             >
               <FiDatabase className="text-lg" />
               View History
@@ -154,7 +154,7 @@ export default function HeroSection() {
               <div className="text-2xl font-bold gradient-text mb-1">
                 {s.value}
               </div>
-              <div className="text-xs text-slate-500 uppercase tracking-wider">
+              <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {s.label}
               </div>
             </motion.div>
@@ -180,10 +180,10 @@ export default function HeroSection() {
             <div
               className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-lg`}
             >
-              <f.icon className="text-white text-xl" />
+              <f.icon className="text-black dark:text-white text-xl" />
             </div>
-            <h3 className="text-white font-semibold text-lg">{f.title}</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
+            <h3 className="text-black dark:text-white font-semibold text-lg">{f.title}</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{f.desc}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -196,7 +196,7 @@ export default function HeroSection() {
         transition={{ duration: 0.6 }}
         className="max-w-4xl mx-auto w-full mt-24 relative z-10"
       >
-        <h2 className="text-3xl font-bold text-center text-white mb-12">
+        <h2 className="text-3xl font-bold text-center text-black dark:text-white mb-12">
           How It <span className="gradient-text">Works</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -231,13 +231,13 @@ export default function HeroSection() {
               <div className="absolute -top-4 -right-4 text-7xl font-black text-brand-500/5 group-hover:text-brand-500/10 transition-colors">
                 {item.step}
               </div>
-              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-brand-600/20 border border-brand-500/30 flex items-center justify-center">
-                <item.icon className="text-brand-400 text-2xl" />
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-brand-600/20 border border-gray-300 dark:border-zinc-800 flex items-center justify-center">
+                <item.icon className="text-brand-700 dark:text-brand-400 text-2xl" />
               </div>
-              <h3 className="text-white font-semibold text-lg mb-2">
+              <h3 className="text-black dark:text-white font-semibold text-lg mb-2">
                 {item.title}
               </h3>
-              <p className="text-slate-400 text-sm">{item.desc}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">{item.desc}</p>
             </motion.div>
           ))}
         </div>

@@ -45,15 +45,15 @@ export default function RetrainDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-900 pt-24 px-4 pb-16">
+    <div className="min-h-screen bg-white dark:bg-black pt-24 px-4 pb-16">
       <Navbar />
       <div className="max-w-6xl mx-auto space-y-8">
         
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <FiCpu className="text-brand-400" /> Model Retraining & Feedback
+          <h1 className="text-3xl font-bold text-black dark:text-white flex items-center gap-3">
+            <FiCpu className="text-brand-700 dark:text-brand-400" /> Model Retraining & Feedback
           </h1>
-          <p className="text-slate-400 mt-2">
+          <p className="text-gray-700 dark:text-gray-300 mt-2">
             Review user feedback, manage training data, and trigger incremental model retraining.
           </p>
         </header>
@@ -62,25 +62,25 @@ export default function RetrainDashboard() {
           <div className="glass-card p-6">
             <div className="flex items-center gap-3 mb-2">
               <FiLayers className="text-cyber-blue text-xl" />
-              <h3 className="text-lg font-semibold text-white">Pending Queue</h3>
+              <h3 className="text-lg font-semibold text-black dark:text-white">Pending Queue</h3>
             </div>
-            <p className="text-3xl font-black text-white">{pendingFeedback.length}</p>
-            <p className="text-xs text-slate-500 mt-1">Awaiting admin review</p>
+            <p className="text-3xl font-black text-black dark:text-white">{pendingFeedback.length}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Awaiting admin review</p>
           </div>
 
           <div className="glass-card p-6">
             <div className="flex items-center gap-3 mb-2">
               <FiTrendingUp className="text-cyber-green text-xl" />
-              <h3 className="text-lg font-semibold text-white">Accuracy Deltas</h3>
+              <h3 className="text-lg font-semibold text-black dark:text-white">Accuracy Deltas</h3>
             </div>
-            <p className="text-3xl font-black text-white">+2.4%</p>
-            <p className="text-xs text-slate-500 mt-1">Since last retrain (v1.0.4)</p>
+            <p className="text-3xl font-black text-black dark:text-white">+2.4%</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Since last retrain (v1.0.4)</p>
           </div>
 
-          <div className="glass-card p-6 border-brand-500/30">
+          <div className="glass-card p-6 border-gray-300 dark:border-zinc-800">
             <div className="flex items-center gap-3 mb-2">
-              <FiActivity className="text-brand-400 text-xl" />
-              <h3 className="text-lg font-semibold text-white">Action</h3>
+              <FiActivity className="text-brand-700 dark:text-brand-400 text-xl" />
+              <h3 className="text-lg font-semibold text-black dark:text-white">Action</h3>
             </div>
             <button
               onClick={handleRetrain}
@@ -91,30 +91,38 @@ export default function RetrainDashboard() {
               {retraining ? "Retraining in progress..." : "Trigger Model Retrain"}
             </button>
             {retrainResult && (
-              <p className={`text-xs mt-3 text-center ${retrainResult.success ? "text-cyber-green" : "text-cyber-red"}`}>
-                {retrainResult.success ? `Success! Deployed ${retrainResult.version}` : "Retraining failed or skipped"}
-              </p>
+              <div className={`text-xs mt-3 text-center space-y-1 ${retrainResult.success ? "text-cyber-green" : "text-cyber-red"}`}>
+                <p className="font-semibold">
+                  {retrainResult.success ? `✓ Deployed ${retrainResult.version}` : "Retraining failed"}
+                </p>
+                {retrainResult.message && (
+                  <p className="text-gray-500 dark:text-gray-400">{retrainResult.message}</p>
+                )}
+                {retrainResult.feedbackProcessed > 0 && (
+                  <p className="text-brand-700 dark:text-brand-300">{retrainResult.feedbackProcessed} feedback entries applied</p>
+                )}
+              </div>
             )}
           </div>
         </div>
 
         <div className="glass-card p-6">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <FiClock className="text-slate-400" /> Pending Feedback Queue
+          <h2 className="text-xl font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+            <FiClock className="text-gray-700 dark:text-gray-300" /> Pending Feedback Queue
           </h2>
           
           {loading ? (
-            <p className="text-slate-400">Loading feedback queue...</p>
+            <p className="text-gray-700 dark:text-gray-300">Loading feedback queue...</p>
           ) : pendingFeedback.length === 0 ? (
-            <div className="p-8 text-center bg-surface-800/50 rounded-xl border border-surface-700">
+            <div className="p-8 text-center bg-gray-100 dark:bg-zinc-900/50 rounded-xl border border-surface-700">
               <FiCheckCircle className="text-4xl text-cyber-green mx-auto mb-3" />
-              <p className="text-slate-300">No pending feedback to review!</p>
+              <p className="text-gray-700 dark:text-gray-300">No pending feedback to review!</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-surface-700 text-xs uppercase tracking-wider text-slate-500">
+                  <tr className="border-b border-surface-700 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     <th className="p-3">Profile</th>
                     <th className="p-3">Original</th>
                     <th className="p-3">Corrected</th>
@@ -124,8 +132,8 @@ export default function RetrainDashboard() {
                 </thead>
                 <tbody className="text-sm">
                   {pendingFeedback.map((fb, i) => (
-                    <tr key={i} className="border-b border-surface-800 hover:bg-surface-800/30">
-                      <td className="p-3 font-medium text-white">@{fb.username}</td>
+                    <tr key={i} className="border-b border-surface-800 hover:bg-gray-100 dark:bg-zinc-900/30">
+                      <td className="p-3 font-medium text-black dark:text-white">@{fb.username}</td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded text-xs ${fb.originalPrediction === "Fake" ? "bg-cyber-red/20 text-cyber-red" : "bg-cyber-green/20 text-cyber-green"}`}>
                           {fb.originalPrediction} ({Math.round(fb.originalFakeProbability)}%)
@@ -136,10 +144,10 @@ export default function RetrainDashboard() {
                           {fb.userCorrectedLabel}
                         </span>
                       </td>
-                      <td className="p-3 text-slate-300 max-w-xs truncate" title={fb.feedbackReason}>
+                      <td className="p-3 text-gray-700 dark:text-gray-300 max-w-xs truncate" title={fb.feedbackReason}>
                         {fb.feedbackReason}
                       </td>
-                      <td className="p-3 text-slate-500">
+                      <td className="p-3 text-gray-500 dark:text-gray-400">
                         {new Date(fb.submittedAt).toLocaleDateString()}
                       </td>
                     </tr>

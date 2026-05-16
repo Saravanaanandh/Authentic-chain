@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@variant dark (&:where(.dark, .dark *));
 @theme {
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
@@ -25,11 +25,28 @@
   --color-cyber-amber: #f59e0b;
 
   /* Surface colors */
-  --color-surface-900: #0a0a1a;
-  --color-surface-800: #111128;
-  --color-surface-700: #1a1a3e;
-  --color-surface-600: #252552;
-  --color-surface-500: #2f2f66;
+  /* Surface colors */
+  --color-surface-900: var(--bg-surface-900);
+  --color-surface-800: var(--bg-surface-800);
+  --color-surface-700: var(--bg-surface-700);
+  --color-surface-600: var(--bg-surface-600);
+  --color-surface-500: var(--bg-surface-500);
+}
+
+:root {
+  --bg-primary: #ffffff;
+  --text-primary: #000000;
+  --text-secondary: #374151;
+  --card-bg: #f3f4f6;
+  --border-color: #d1d5db;
+}
+
+.dark {
+  --bg-primary: #0a0a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --card-bg: rgba(17, 17, 40, 0.6);
+  --border-color: rgba(99, 102, 241, 0.15);
 }
 
 /* ====================== Base Styles ====================== */
@@ -38,10 +55,11 @@ html {
 }
 
 body {
-  background-color: var(--color-surface-900);
-  color: #e2e8f0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 /* ====================== Glowing Animations ====================== */
@@ -83,10 +101,10 @@ body {
 
 /* ====================== Utility Classes ====================== */
 .glass-card {
-  background: rgba(17, 17, 40, 0.6);
+  background: var(--card-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--border-color);
   border-radius: 1rem;
 }
 

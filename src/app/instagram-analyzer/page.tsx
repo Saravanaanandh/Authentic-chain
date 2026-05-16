@@ -224,11 +224,11 @@ export default function InstagramAnalyzerPage() {
               {/* <FiInstagram className="text-sm" /> */}
               Profile Intelligence
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-black dark:text-white mb-2">
               Social Media{" "}
               <span className="gradient-text">Profile Analyzer</span>
             </h1>
-            <p className="text-slate-400 text-sm max-w-lg mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 text-sm max-w-lg mx-auto">
               Paste an social media profile URL or username. Our AI engine scrapes
               public data via Apify, runs 9+ risk signals, and delivers a
               real-time fake probability score with blockchain proof.
@@ -252,10 +252,10 @@ export default function InstagramAnalyzerPage() {
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all ${
                     isActive
                       ? "bg-brand-600 text-white shadow-lg shadow-brand-600/30"
-                      : "bg-surface-800 text-slate-400 hover:text-white hover:bg-surface-700 border border-surface-600"
+                      : "bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700"
                   }`}
                 >
-                  <Icon className={isActive ? "text-white" : "text-brand-400"} />
+                  <Icon className={isActive ? "text-black dark:text-white" : "text-brand-700 dark:text-brand-400"} />
                   {tab.label}
                 </button>
               );
@@ -265,7 +265,7 @@ export default function InstagramAnalyzerPage() {
           {/* ---- Disclaimer ---- */}
           <div className="glass-card p-4 border-cyber-amber/30 bg-cyber-amber/5 flex items-start gap-3 max-w-3xl mx-auto mb-8">
             <FiAlertTriangle className="text-cyber-amber text-lg flex-shrink-0 mt-0.5" />
-            <p className="text-slate-300 text-sm leading-relaxed">
+            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
               <strong>Disclaimer:</strong> This website may not be completely accurate and could contain errors. Its analysis is based on heuristics and publicly available data, so please use the results as a guideline rather than an absolute truth.
             </p>
           </div>
@@ -280,13 +280,13 @@ export default function InstagramAnalyzerPage() {
             >
               <label
                 htmlFor="instagram-input"
-                className="block text-sm font-medium text-slate-300 mb-3"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
               >
                 Enter Instagram Profile URL or Username
               </label>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
-                  <FiInstagram className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-400 text-lg" />
+                  <FiInstagram className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-700 dark:text-brand-400 text-lg" />
                   <input
                     id="instagram-input"
                     type="text"
@@ -295,10 +295,10 @@ export default function InstagramAnalyzerPage() {
                     onChange={(e) => handleInputChange(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
                     disabled={loading}
-                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-surface-800 border border-brand-500/20 text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-400/60 focus:ring-1 focus:ring-brand-400/30 transition-all text-sm disabled:opacity-50"
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-black dark:text-white placeholder:text-gray-500 dark:text-gray-400 focus:outline-none focus:border-brand-400/60 focus:ring-1 focus:ring-brand-400/30 transition-all text-sm disabled:opacity-50"
                   />
                   {detectedUsername && !loading && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-brand-300 font-mono bg-brand-500/10 px-2 py-0.5 rounded">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-brand-700 dark:text-brand-300 font-mono bg-brand-500/10 px-2 py-0.5 rounded">
                       @{detectedUsername}
                     </span>
                   )}
@@ -309,7 +309,7 @@ export default function InstagramAnalyzerPage() {
                     whileTap={{ scale: 0.97 }}
                     onClick={handleAnalyze}
                     disabled={loading || !input.trim()}
-                    className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyber-pink to-brand-600 text-white font-semibold text-sm shadow-lg shadow-cyber-pink/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyber-pink to-brand-600 text-black dark:text-white font-semibold text-sm shadow-lg shadow-cyber-pink/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
                   >
                     {loading ? (
                       <FiLoader className="animate-spin" />
@@ -325,7 +325,7 @@ export default function InstagramAnalyzerPage() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={handleClear}
-                      className="flex items-center gap-1 px-4 py-3.5 rounded-xl border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-all text-sm cursor-pointer"
+                      className="flex items-center gap-1 px-4 py-3.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:border-slate-500 transition-all text-sm cursor-pointer"
                     >
                       <FiX />
                       Clear
@@ -356,11 +356,11 @@ export default function InstagramAnalyzerPage() {
               animate={{ opacity: 1, y: 0 }}
               className="glass-card p-12 text-center"
             >
-              <div className="w-16 h-16 mx-auto bg-surface-800 border border-surface-600 rounded-full flex items-center justify-center mb-4">
-                <FiInfo className="text-2xl text-slate-400" />
+              <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-full flex items-center justify-center mb-4">
+                <FiInfo className="text-2xl text-gray-700 dark:text-gray-300" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Under Development</h2>
-              <p className="text-slate-400 text-sm max-w-sm mx-auto">
+              <h2 className="text-2xl font-bold text-black dark:text-white mb-2">Under Development</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mx-auto">
                 The analyzer for {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} is currently under development. Check back soon!
               </p>
             </motion.div>
@@ -377,15 +377,15 @@ export default function InstagramAnalyzerPage() {
               >
                 <div className="relative mx-auto w-20 h-20 mb-6">
                   {/* Spinning ring */}
-                  <div className="absolute inset-0 rounded-full border-2 border-brand-500/20" />
+                  <div className="absolute inset-0 rounded-full border-2 border-gray-300 dark:border-zinc-800" />
                   <div className="absolute inset-0 rounded-full border-2 border-t-cyber-pink border-r-transparent border-b-transparent border-l-transparent animate-spin" />
                   <div className="absolute inset-2 rounded-full border-2 border-t-transparent border-r-brand-400 border-b-transparent border-l-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
                   <FiInstagram className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-cyber-pink text-2xl" />
                 </div>
-                <h3 className="text-white font-semibold text-lg mb-2">
+                <h3 className="text-black dark:text-white font-semibold text-lg mb-2">
                   Scanning Profile…
                 </h3>
-                <p className="text-slate-400 text-sm max-w-md mx-auto">
+                <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto">
                   Fetching public Instagram data via Apify, running risk analysis
                   across 9+ signals, and preparing your report.
                 </p>
@@ -452,15 +452,15 @@ export default function InstagramAnalyzerPage() {
                             />
                           ) : null}
                           <div
-                            className="w-full h-full bg-surface-700 items-center justify-center"
+                            className="w-full h-full bg-gray-200 dark:bg-zinc-800 items-center justify-center"
                             style={{ display: result.apifyData.profilePicUrl ? "none" : "flex" }}
                           >
-                            <FiUsers className="text-3xl text-slate-500" />
+                            <FiUsers className="text-3xl text-gray-500 dark:text-gray-400" />
                           </div>
                         </div>
                         {result.apifyData.verified && (
                           <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-cyber-blue flex items-center justify-center border-2 border-surface-900">
-                            <FiCheckCircle className="text-white text-xs" />
+                            <FiCheckCircle className="text-black dark:text-white text-xs" />
                           </div>
                         )}
                       </div>
@@ -469,7 +469,7 @@ export default function InstagramAnalyzerPage() {
                     {/* Info */}
                     <div className="flex-1 text-center sm:text-left">
                       <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                        <h2 className="text-xl font-bold text-white">
+                        <h2 className="text-xl font-bold text-black dark:text-white">
                           {result.apifyData.fullName || result.apifyData.username}
                         </h2>
                         {result.apifyData.verified && (
@@ -483,11 +483,11 @@ export default function InstagramAnalyzerPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-brand-300 text-sm font-mono mb-3">
+                      <p className="text-brand-700 dark:text-brand-300 text-sm font-mono mb-3">
                         @{result.apifyData.username}
                       </p>
                       {result.apifyData.biography && (
-                        <p className="text-slate-400 text-sm leading-relaxed mb-4 max-w-lg">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4 max-w-lg">
                           {result.apifyData.biography}
                         </p>
                       )}
@@ -495,28 +495,28 @@ export default function InstagramAnalyzerPage() {
                       {/* Stats row */}
                       <div className="flex items-center justify-center sm:justify-start gap-6">
                         <div className="text-center">
-                          <div className="text-white font-bold text-lg">
+                          <div className="text-black dark:text-white font-bold text-lg">
                             {formatNumber(result.apifyData.postsCount)}
                           </div>
-                          <div className="text-slate-500 text-xs uppercase tracking-wider">
+                          <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                             Posts
                           </div>
                         </div>
                         <div className="w-px h-8 bg-brand-500/20" />
                         <div className="text-center">
-                          <div className="text-white font-bold text-lg">
+                          <div className="text-black dark:text-white font-bold text-lg">
                             {formatNumber(result.apifyData.followersCount)}
                           </div>
-                          <div className="text-slate-500 text-xs uppercase tracking-wider">
+                          <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                             Followers
                           </div>
                         </div>
                         <div className="w-px h-8 bg-brand-500/20" />
                         <div className="text-center">
-                          <div className="text-white font-bold text-lg">
+                          <div className="text-black dark:text-white font-bold text-lg">
                             {formatNumber(result.apifyData.followsCount)}
                           </div>
-                          <div className="text-slate-500 text-xs uppercase tracking-wider">
+                          <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                             Following
                           </div>
                         </div>
@@ -527,7 +527,7 @@ export default function InstagramAnalyzerPage() {
                           href={result.apifyData.externalUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 mt-3 text-xs text-brand-300 hover:text-white transition-colors"
+                          className="inline-flex items-center gap-1 mt-3 text-xs text-brand-700 dark:text-brand-300 hover:text-black dark:text-white transition-colors"
                         >
                           <FiExternalLink />
                           {result.apifyData.externalUrl}
@@ -545,7 +545,7 @@ export default function InstagramAnalyzerPage() {
                     animate={{ scale: 1 }}
                     className="glass-card p-6 flex flex-col items-center justify-center"
                   >
-                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 text-center">
                       Final Hybrid Risk Score
                     </div>
                     <div className="relative w-28 h-28">
@@ -593,7 +593,7 @@ export default function InstagramAnalyzerPage() {
                     transition={{ delay: 0.1 }}
                     className="glass-card p-6 flex flex-col items-center justify-center"
                   >
-                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 text-center">
                       Final Fake Probability (Confidence)
                     </div>
                     <div
@@ -604,7 +604,7 @@ export default function InstagramAnalyzerPage() {
                     >
                       {Math.round(result.hybridAnalysis.finalFakeProbability)}%
                     </div>
-                    <div className="w-full mt-2 h-2 rounded-full bg-surface-700 overflow-hidden">
+                    <div className="w-full mt-2 h-2 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{
@@ -628,7 +628,7 @@ export default function InstagramAnalyzerPage() {
                     transition={{ delay: 0.2 }}
                     className={`glass-card p-6 flex flex-col items-center justify-center border ${verdictConfig?.border}`}
                   >
-                    <div className="text-xs text-slate-500 uppercase tracking-wider mb-3 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 text-center">
                       Final Verdict
                     </div>
                     <div
@@ -657,9 +657,9 @@ export default function InstagramAnalyzerPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="glass-card p-6 border-brand-500/20"
+                    className="glass-card p-6 border-gray-300 dark:border-zinc-800"
                 >
-                    <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
                       <FiShield className="text-cyber-blue" />
                       Model Comparison
                     </h3>
@@ -669,17 +669,17 @@ export default function InstagramAnalyzerPage() {
                         { label: "Advanced Ensemble Verification", score: result.externalAnalysis?.unavailable ? 0 : (result.externalAnalysis?.fakeProbability || 0), desc: "External API Score", weight: `${result.hybridAnalysis.weights.external}%` },
                         { label: "Hybrid AI Fraud Detection Score", score: result.hybridAnalysis.finalFakeProbability, desc: "Final Hybrid Score", weight: "100%" },
                       ].map((model, idx) => (
-                        <div key={idx} className="bg-surface-800/50 border border-brand-500/10 p-4 rounded-xl">
+                        <div key={idx} className="bg-gray-100 dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 p-4 rounded-xl">
                           <div className="flex justify-between items-end mb-2">
                             <div>
-                              <div className="text-sm font-semibold text-white">{model.label}</div>
-                              <div className="text-[10px] text-slate-500">{model.desc} • Wt: {model.weight}</div>
+                              <div className="text-sm font-semibold text-black dark:text-white">{model.label}</div>
+                              <div className="text-[10px] text-gray-500 dark:text-gray-400">{model.desc} • Wt: {model.weight}</div>
                             </div>
                             <div className={`text-lg font-bold ${getRiskGaugeColor(model.score || 0)}`}>
                               {Math.round(model.score || 0)}%
                             </div>
                           </div>
-                          <div className="h-1.5 rounded-full bg-surface-700 overflow-hidden">
+                          <div className="h-1.5 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${model.score}%` }}
@@ -701,8 +701,8 @@ export default function InstagramAnalyzerPage() {
                     transition={{ delay: 0.3 }}
                     className="glass-card p-6"
                   >
-                    <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
-                      <FiFileText className="text-brand-400" />
+                    <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                      <FiFileText className="text-brand-700 dark:text-brand-400" />
                       Risk Analysis Breakdown
                     </h3>
                     <div className="space-y-3">
@@ -712,7 +712,7 @@ export default function InstagramAnalyzerPage() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.35 + i * 0.05 }}
-                          className="flex items-start gap-3 p-3 rounded-lg bg-surface-800/60 border border-brand-500/10"
+                          className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800"
                         >
                           <div
                             className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
@@ -729,7 +729,7 @@ export default function InstagramAnalyzerPage() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-white text-sm font-medium">
+                              <span className="text-black dark:text-white text-sm font-medium">
                                 {reason.signal}
                               </span>
                               <span
@@ -743,7 +743,7 @@ export default function InstagramAnalyzerPage() {
                                 {reason.weight}
                               </span>
                             </div>
-                            <p className="text-slate-400 text-xs mt-0.5 leading-relaxed">
+                            <p className="text-gray-700 dark:text-gray-300 text-xs mt-0.5 leading-relaxed">
                               {reason.detail}
                             </p>
                           </div>
@@ -759,9 +759,9 @@ export default function InstagramAnalyzerPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="glass-card p-6 border-brand-500/20"
+                    className="glass-card p-6 border-gray-300 dark:border-zinc-800"
                   >
-                    <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
                       <FiShield className="text-cyber-green" />
                       Internal Analysis Detail
                     </h3>
@@ -772,17 +772,17 @@ export default function InstagramAnalyzerPage() {
                         { label: "Bio & Content Analysis", score: result.internalAnalysis.bioScore, desc: "Spam, phishing & language patterns", weight: "20%" },
                         { label: "Behavioral Anomaly Detection", score: result.internalAnalysis.anomalyScore, desc: "Outlier activity & bot-like behavior", weight: "10%" },
                       ].map((model, idx) => (
-                        <div key={idx} className="bg-surface-800/50 border border-brand-500/10 p-4 rounded-xl">
+                        <div key={idx} className="bg-gray-100 dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 p-4 rounded-xl">
                           <div className="flex justify-between items-end mb-2">
                             <div>
-                              <div className="text-sm font-semibold text-white">{model.label}</div>
-                              <div className="text-[10px] text-slate-500">{model.desc} • Wt: {model.weight}</div>
+                              <div className="text-sm font-semibold text-black dark:text-white">{model.label}</div>
+                              <div className="text-[10px] text-gray-500 dark:text-gray-400">{model.desc} • Wt: {model.weight}</div>
                             </div>
                             <div className={`text-lg font-bold ${getRiskGaugeColor(model.score || 0)}`}>
                               {Math.round(model.score || 0)}%
                             </div>
                           </div>
-                          <div className="h-1.5 rounded-full bg-surface-700 overflow-hidden">
+                          <div className="h-1.5 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${model.score}%` }}
@@ -804,41 +804,41 @@ export default function InstagramAnalyzerPage() {
                   transition={{ delay: 0.4 }}
                   className="glass-card p-6"
                 >
-                  <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
-                    <FiLink className="text-brand-400" />
+                  <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <FiLink className="text-brand-700 dark:text-brand-400" />
                     Blockchain Verification Proof
                   </h3>
                   {result.blockchainProof ? (
                     <div className="space-y-3">
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-surface-800/60 border border-cyber-green/10">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-cyber-green/10">
                         <FiHash className="text-cyber-green mt-0.5 flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs text-slate-500 mb-0.5">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
                             Verification Hash
                           </div>
-                          <div className="text-sm text-white font-mono break-all">
+                          <div className="text-sm text-black dark:text-white font-mono break-all">
                             {result.blockchainProof.dataHash}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-surface-800/60 border border-brand-500/10">
-                        <FiLink className="text-brand-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800">
+                        <FiLink className="text-brand-700 dark:text-brand-400 mt-0.5 flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs text-slate-500 mb-0.5">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
                             Transaction Hash
                           </div>
-                          <div className="text-sm text-brand-300 font-mono break-all">
+                          <div className="text-sm text-brand-700 dark:text-brand-300 font-mono break-all">
                             {result.blockchainProof.txHash}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-surface-800/60 border border-brand-500/10">
-                        <FiClock className="text-slate-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800">
+                        <FiClock className="text-gray-700 dark:text-gray-300 mt-0.5 flex-shrink-0" />
                         <div>
-                          <div className="text-xs text-slate-500 mb-0.5">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
                             Timestamp
                           </div>
-                          <div className="text-sm text-white">
+                          <div className="text-sm text-black dark:text-white">
                             {new Date(
                               result.blockchainProof.timestamp
                             ).toLocaleString()}
@@ -847,9 +847,9 @@ export default function InstagramAnalyzerPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 rounded-lg bg-surface-800/40 border border-brand-500/10 text-center">
-                      <FiInfo className="mx-auto text-2xl text-slate-500 mb-2" />
-                      <p className="text-slate-400 text-sm">
+                    <div className="p-4 rounded-lg bg-gray-100 dark:bg-zinc-900/40 border border-gray-300 dark:border-zinc-800 text-center">
+                      <FiInfo className="mx-auto text-2xl text-gray-500 dark:text-gray-400 mb-2" />
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
                         Blockchain proof was not generated for this scan.
                         This may be due to network configuration or wallet balance.
                       </p>
@@ -865,17 +865,17 @@ export default function InstagramAnalyzerPage() {
                   className="mt-8"
                 >
                   {!showFeedback ? (
-                    <div className="glass-card p-6 text-center border-brand-500/20">
-                      <h3 className="text-white font-semibold text-lg mb-2">
+                    <div className="glass-card p-6 text-center border-gray-300 dark:border-zinc-800">
+                      <h3 className="text-black dark:text-white font-semibold text-lg mb-2">
                         Was this prediction accurate?
                       </h3>
-                      <p className="text-sm text-slate-400 mb-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
                         Your feedback helps improve our AI model for everyone.
                       </p>
                       <div className="flex justify-center gap-4">
                         <button
                           onClick={() => setShowFeedback(true)}
-                          className="px-6 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:text-white hover:bg-surface-700 transition-colors text-sm font-medium"
+                          className="px-6 py-2.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:text-white hover:bg-gray-200 dark:bg-zinc-800 transition-colors text-sm font-medium"
                         >
                           Incorrect — Submit Feedback
                         </button>

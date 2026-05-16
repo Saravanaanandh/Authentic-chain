@@ -38,14 +38,14 @@ export default function LoginPage() {
     signIn("google", { callbackUrl: "/" });
   };
 
-  const ic = "w-full bg-surface-800/60 border border-brand-500/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-400 transition-all text-sm";
+  const ic = "w-full bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-black dark:text-white placeholder:text-gray-500 dark:text-gray-400 focus:outline-none focus:border-brand-400 transition-all text-sm";
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen flex items-center justify-center pt-16 px-4">
         <div className="w-full max-w-md glass-card p-8">
-          <h2 className="text-2xl font-bold text-center text-white mb-6">Welcome Back</h2>
+          <h2 className="text-2xl font-bold text-center text-black dark:text-white mb-6">Welcome Back</h2>
           
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-cyber-red/10 border border-cyber-red/30 text-cyber-red text-sm flex items-center gap-2">
@@ -55,7 +55,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
-              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
               <input 
                 type="email" 
                 placeholder="Email Address" 
@@ -67,7 +67,7 @@ export default function LoginPage() {
             </div>
             
             <div className="relative">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
               <input 
                 type="password" 
                 placeholder="Password" 
@@ -81,29 +81,29 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white font-semibold shadow-lg hover:shadow-brand-600/25 disabled:opacity-50 transition-all"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-black dark:text-white font-semibold shadow-lg hover:shadow-brand-600/25 disabled:opacity-50 transition-all"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
           <div className="mt-6 flex items-center justify-between">
-            <span className="w-1/5 border-b border-surface-600 lg:w-1/4"></span>
-            <span className="text-xs text-center text-slate-500 uppercase">or login with</span>
-            <span className="w-1/5 border-b border-surface-600 lg:w-1/4"></span>
+            <span className="w-1/5 border-b border-gray-300 dark:border-zinc-700 lg:w-1/4"></span>
+            <span className="text-xs text-center text-gray-500 dark:text-gray-400 uppercase">or login with</span>
+            <span className="w-1/5 border-b border-gray-300 dark:border-zinc-700 lg:w-1/4"></span>
           </div>
 
           <div className="mt-4 flex flex-col gap-3">
             <button 
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-brand-500/30 text-white font-semibold hover:bg-surface-700 transition-all"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-300 dark:border-zinc-800 text-black dark:text-white font-semibold hover:bg-gray-200 dark:bg-zinc-800 transition-all"
             >
               Google
             </button>
           </div>
 
-          <p className="mt-6 text-center text-sm text-slate-400">
-            Don&apos;t have an account? <Link href="/register" className="text-brand-400 hover:underline">Register</Link>
+          <p className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
+            Don&apos;t have an account? <Link href="/register" className="text-brand-700 dark:text-brand-400 hover:underline">Register</Link>
           </p>
         </div>
       </div>

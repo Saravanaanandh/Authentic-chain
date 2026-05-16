@@ -13,10 +13,10 @@ export default function DataDeletion() {
       <Navbar />
       <div className="min-h-screen pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto glass-card p-8 sm:p-12">
-          <h1 className="text-3xl font-bold text-white mb-6">Data Deletion Instructions</h1>
-          <p className="text-lg text-slate-300">
+          <h1 className="text-3xl font-bold text-black dark:text-white mb-6">Data Deletion Instructions</h1>
+          <p className="text-lg text-gray-700 dark:text-gray-300">
             Users can request deletion of their account and associated data
-            by emailing <a href="mailto:saravanawebdev@gmail.com" className="text-brand-400 hover:underline">saravanawebdev@gmail.com</a>
+            by emailing <a href="mailto:saravanawebdev@gmail.com" className="text-brand-700 dark:text-brand-400 hover:underline">saravanawebdev@gmail.com</a>
           </p>
         </div>
       </div>
