@@ -20,6 +20,7 @@ import {
   FiExternalLink,
   FiLoader,
   FiInfo,
+  FiCpu,
 } from "react-icons/fi";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -73,6 +74,9 @@ interface ApiResponse {
     combinedReasons: { signal: string; detail: string; weight: number }[];
     weights: { external: number; internal: number };
     externalUnavailable?: boolean;
+    aiExplanation?: string;
+    aiRiskLevel?: string;
+    aiSuggestions?: string[];
   };
   blockchainProof?: BlockchainProof | null;
   error?: string;
@@ -122,6 +126,40 @@ function getRiskGaugeColor(score: number): string {
   if (score <= 25) return "#10b981";
   if (score <= 55) return "#f59e0b";
   return "#ef4444";
+}
+
+function parseBold(text: string): React.ReactNode {
+  const parts = text.split(/\*\*([^*]+)\*\*/g);
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return <strong key={i} className="font-semibold text-brand-700 dark:text-brand-300">{part}</strong>;
+    }
+    return part;
+  });
+}
+
+function parseMarkdown(text: string): React.ReactNode[] {
+  if (!text) return [];
+  const lines = text.split("\n");
+  return lines.map((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed) return <div key={idx} className="h-2" />;
+
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      const content = trimmed.substring(2);
+      return (
+        <li key={idx} className="ml-4 list-disc text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-1">
+          {parseBold(content)}
+        </li>
+      );
+    }
+
+    return (
+      <p key={idx} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
+        {parseBold(trimmed)}
+      </p>
+    );
+  });
 }
 
 // ---------- Component ----------
@@ -193,6 +231,39 @@ export default function InstagramAnalyzerPage() {
         }
       } else {
         setResult(data);
+        try {
+          const aiRes = await fetch("/api/ai/explain", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prediction: data.hybridAnalysis?.finalVerdict || "UNKNOWN",
+              followers: data.apifyData?.followersCount || 0,
+              following: data.apifyData?.followsCount || 0,
+              posts: data.apifyData?.postsCount || 0,
+              bio: data.apifyData?.biography || "",
+              hasProfilePic: !!data.apifyData?.profilePicUrl,
+              riskScore: data.hybridAnalysis?.finalRiskScore || 0,
+              reasons: data.hybridAnalysis?.combinedReasons || [],
+            }),
+          });
+          if (aiRes.ok) {
+            const aiData = await aiRes.json();
+            setResult((prev) => {
+              if (!prev || !prev.hybridAnalysis) return prev;
+              return {
+                ...prev,
+                hybridAnalysis: {
+                  ...prev.hybridAnalysis,
+                  aiExplanation: aiData.explanation,
+                  aiRiskLevel: aiData.riskLevel,
+                  aiSuggestions: aiData.suggestions,
+                },
+              };
+            });
+          }
+        } catch (aiErr) {
+          console.error("⚠️ Failed to fetch AI explanation:", aiErr);
+        }
       }
     } catch {
       setError("Network error — please check your connection and try again.");
@@ -692,6 +763,85 @@ export default function InstagramAnalyzerPage() {
                       ))}
                     </div>
                 </motion.div>
+
+                {/* ---- AI Prediction Insights ---- */}
+                {result.hybridAnalysis.aiExplanation && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.28 }}
+                    className="glass-card p-6 border-l-4 border-l-cyber-pink relative overflow-hidden"
+                  >
+                    {/* Glowing background highlights */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-pink/5 rounded-full blur-xl pointer-events-none" />
+                    
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand-500/10 pb-4 mb-4">
+                      <h3 className="text-black dark:text-white font-semibold text-lg flex items-center gap-2">
+                        <FiCpu className="text-cyber-pink animate-pulse" />
+                        AI Prediction Insights
+                      </h3>
+                      
+                      {result.hybridAnalysis.aiRiskLevel && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] uppercase tracking-wider text-gray-500">AI Risk Level:</span>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              result.hybridAnalysis.aiRiskLevel === "HIGH"
+                                ? "bg-cyber-red/10 text-cyber-red border border-cyber-red/30"
+                                : result.hybridAnalysis.aiRiskLevel === "MEDIUM"
+                                ? "bg-cyber-amber/10 text-cyber-amber border border-cyber-amber/30"
+                                : "bg-cyber-green/10 text-cyber-green border border-cyber-green/30"
+                            }`}
+                          >
+                            {result.hybridAnalysis.aiRiskLevel}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Narrative & Verdict */}
+                      <div className="md:col-span-2 space-y-4">
+                        <div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-mono">Prediction Summary</div>
+                          <div className="text-sm font-semibold text-black dark:text-white flex items-center gap-2">
+                            ML Verdict: 
+                            <span className={
+                              result.hybridAnalysis.finalVerdict === "HIGHLY FAKE" ? "text-cyber-red" : 
+                              result.hybridAnalysis.finalVerdict === "SUSPICIOUS" ? "text-cyber-amber" : "text-cyber-green"
+                            }>
+                              {result.hybridAnalysis.finalVerdict}
+                            </span>
+                            ({result.hybridAnalysis.finalFakeProbability}% probability)
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-mono">AI Assessment Explanation</div>
+                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                            {parseMarkdown(result.hybridAnalysis.aiExplanation)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actionable Suggestions */}
+                      {result.hybridAnalysis.aiSuggestions && result.hybridAnalysis.aiSuggestions.length > 0 && (
+                        <div className="bg-gray-100 dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 p-4 rounded-xl h-fit">
+                          <div className="text-xs text-brand-700 dark:text-brand-300 font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <FiCheckCircle className="text-cyber-green shrink-0" /> Safety Suggestions
+                          </div>
+                          <ul className="space-y-2">
+                            {result.hybridAnalysis.aiSuggestions.map((suggestion, idx) => (
+                              <li key={idx} className="flex gap-2 text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                                <span className="text-cyber-pink select-none font-bold">•</span>
+                                <span>{suggestion}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* ---- Risk Reasons ---- */}
                 {result.hybridAnalysis.combinedReasons.length > 0 && (
