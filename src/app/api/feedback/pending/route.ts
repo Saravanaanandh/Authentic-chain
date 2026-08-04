@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { connectDB } from "@/lib/mongodb";
 import ModelFeedback from "@/lib/models/ModelFeedback";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const { authOptions } = await import("@/lib/auth");

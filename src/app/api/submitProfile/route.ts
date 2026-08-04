@@ -9,6 +9,8 @@ import { StoredProfile } from "@/lib/types";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 // Simple in-memory rate limiter (per IP) to prevent blockchain spam
 const rateLimitMap = new Map<string, { count: number; timestamp: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute

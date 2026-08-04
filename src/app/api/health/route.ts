@@ -3,6 +3,8 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 
+export const dynamic = "force-dynamic";
+
 const startTime = Date.now();
 
 export async function GET() {

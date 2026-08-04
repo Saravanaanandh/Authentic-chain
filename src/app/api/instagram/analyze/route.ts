@@ -9,6 +9,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+
+export const dynamic = "force-dynamic";
+import { authOptions } from "@/lib/auth";
 import { extractUsername } from "@/lib/instagramParser";
 import { fetchInstagramProfile } from "@/lib/apifyService";
 import { analyzeInstagramProfile } from "@/lib/fakeScoreEngine";
@@ -18,6 +21,7 @@ import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
 import { mapApifyToPredictionInput, callExternalPredictionAPI } from "@/services/externalPredictionService";
 import { calculateHybridScore } from "@/utils/hybridScoreEngine";
 import { validateProfileExists, returnValidationError } from "@/utils/profileExistenceValidator";
+import { uploadImageFromUrl } from "@/lib/cloudinaryUploadUrl";
 
 
 // Simple in-memory rate limiter (per IP, 10 requests / minute)
@@ -39,6 +43,16 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
+    // ---- Authentication check ----
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required. Please login to analyze profiles." },
+        { status: 401 }
+      );
+    }
+    const scannedBy = session.user.email;
+
     // ---- Rate limit ----
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -100,6 +114,21 @@ export async function POST(req: NextRequest) {
         returnValidationError(username),
         { status: 404 }
       );
+    }
+
+    // ---- Upload profile image to Cloudinary ----
+    let cloudinaryImageUrl = "";
+    if (profileData.profilePicUrl) {
+      try {
+        const uploadResult = await uploadImageFromUrl(
+          profileData.profilePicUrl,
+          profileData.username
+        );
+        cloudinaryImageUrl = uploadResult.url;
+      } catch (imgErr) {
+        console.warn("⚠️ Cloudinary image upload failed:", imgErr);
+        // Continue without Cloudinary URL
+      }
     }
 
     // ---- Analyse profile ----
@@ -202,17 +231,6 @@ export async function POST(req: NextRequest) {
     // ---- Persist to MongoDB ----
     await connectDB();
 
-    // Identify user
-    let scannedBy = "anonymous";
-    try {
-      // Dynamic import to avoid breaking if auth config changes
-      const { authOptions } = await import("@/lib/auth");
-      const session = await getServerSession(authOptions);
-      if (session?.user?.email) scannedBy = session.user.email;
-    } catch {
-      // Proceed anonymously
-    }
-
     const doc = await InstagramAnalysis.create({
       input: rawInput,
       username: profileData.username,
@@ -223,7 +241,8 @@ export async function POST(req: NextRequest) {
         followsCount: profileData.followsCount,
         postsCount: profileData.postsCount,
         verified: profileData.verified,
-        profilePicUrl: profileData.profilePicUrl,
+        // Store Cloudinary URL instead of original Apify URL
+        profilePicUrl: cloudinaryImageUrl || profileData.profilePicUrl,
         isPrivate: profileData.isPrivate,
         externalUrl: profileData.externalUrl,
         instagramId: profileData.id,
@@ -249,10 +268,16 @@ export async function POST(req: NextRequest) {
     });
 
     // ---- Response ----
+    // Return Cloudinary URL in apifyData for frontend display
+    const responseApifyData = {
+      ...profileData,
+      profilePicUrl: cloudinaryImageUrl || profileData.profilePicUrl,
+    };
+
     return NextResponse.json({
       success: true,
       username: profileData.username,
-      apifyData: profileData,
+      apifyData: responseApifyData,
       internalAnalysis,
       externalAnalysis,
       hybridAnalysis,

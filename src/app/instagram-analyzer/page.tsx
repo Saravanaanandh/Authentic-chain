@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FiInstagram,
   FiSearch,
   FiX,
   FiUsers,
@@ -22,11 +21,12 @@ import {
   FiInfo,
   FiCpu,
 } from "react-icons/fi";
+import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProfileNotFound from "@/components/ProfileNotFound";
 import FeedbackForm from "@/components/FeedbackForm";
-
 
 
 // ---------- Types ----------
@@ -94,28 +94,28 @@ function getVerdictConfig(verdict: string) {
   switch (verdict) {
     case "REAL":
       return {
-        color: "text-cyber-green",
-        bg: "bg-cyber-green/10",
-        border: "border-cyber-green/30",
-        glow: "shadow-cyber-green/20",
+        color: "text-green-500",
+        bg: "bg-green-50 dark:bg-green-500/10",
+        border: "border-green-200 dark:border-green-500/30",
+        glow: "",
         icon: FiCheckCircle,
         label: "Likely Real",
       };
     case "SUSPICIOUS":
       return {
-        color: "text-cyber-amber",
-        bg: "bg-cyber-amber/10",
-        border: "border-cyber-amber/30",
-        glow: "shadow-cyber-amber/20",
+        color: "text-amber-500",
+        bg: "bg-amber-50 dark:bg-amber-500/10",
+        border: "border-amber-200 dark:border-amber-500/30",
+        glow: "",
         icon: FiAlertTriangle,
         label: "Suspicious",
       };
     default:
       return {
-        color: "text-cyber-red",
-        bg: "bg-cyber-red/10",
-        border: "border-cyber-red/30",
-        glow: "shadow-cyber-red/20",
+        color: "text-red-500",
+        bg: "bg-red-50 dark:bg-red-500/10",
+        border: "border-red-200 dark:border-red-500/30",
+        glow: "",
         icon: FiXCircle,
         label: "Highly Fake",
       };
@@ -123,7 +123,7 @@ function getVerdictConfig(verdict: string) {
 }
 
 function getRiskGaugeColor(score: number): string {
-  if (score <= 25) return "#10b981";
+  if (score <= 25) return "#22c55e";
   if (score <= 55) return "#f59e0b";
   return "#ef4444";
 }
@@ -132,7 +132,7 @@ function parseBold(text: string): React.ReactNode {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
   return parts.map((part, i) => {
     if (i % 2 === 1) {
-      return <strong key={i} className="font-semibold text-brand-700 dark:text-brand-300">{part}</strong>;
+      return <strong key={i} className="font-semibold text-black dark:text-white">{part}</strong>;
     }
     return part;
   });
@@ -148,38 +148,60 @@ function parseMarkdown(text: string): React.ReactNode[] {
     if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
       const content = trimmed.substring(2);
       return (
-        <li key={idx} className="ml-4 list-disc text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-1">
+        <li key={idx} className="ml-4 list-disc text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-1">
           {parseBold(content)}
         </li>
       );
     }
 
     return (
-      <p key={idx} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
+      <p key={idx} className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-3">
         {parseBold(trimmed)}
       </p>
     );
   });
 }
 
-// ---------- Component ----------
+// ---------- Inner Component ----------
 
-export default function InstagramAnalyzerPage() {
+function AnalyzerContent() {
+  const { status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<{stage: string, username?: string} | null>(null);
   const [detectedUsername, setDetectedUsername] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("instagram");
   const [showFeedback, setShowFeedback] = useState(false);
 
-  // Auto-detect username from input
+  // Auth check
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login?callbackUrl=/");
+    }
+  }, [status, router]);
+
+  // Auto-start analysis if input was passed via URL
+  useEffect(() => {
+    const urlInput = searchParams.get("input");
+    if (urlInput && status === "authenticated" && !result && !loading) {
+      setInput(urlInput);
+      handleInputChange(urlInput);
+      // Trigger analysis after a short delay
+      setTimeout(() => {
+        triggerAnalysis(urlInput);
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, status]);
+
   const handleInputChange = (val: string) => {
     setInput(val);
     setError(null);
 
-    // Try to extract username for preview
     const urlMatch = val.match(
       /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)\/?/i
     );
@@ -203,8 +225,8 @@ export default function InstagramAnalyzerPage() {
     setShowFeedback(false);
   };
 
-  const handleAnalyze = useCallback(async () => {
-    if (!input.trim()) {
+  const triggerAnalysis = async (analysisInput: string) => {
+    if (!analysisInput.trim()) {
       setError("Please enter an Instagram URL or username.");
       return;
     }
@@ -218,7 +240,7 @@ export default function InstagramAnalyzerPage() {
       const res = await fetch("/api/instagram/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: input.trim() }),
+        body: JSON.stringify({ input: analysisInput.trim() }),
       });
 
       const data: any = await res.json();
@@ -270,20 +292,29 @@ export default function InstagramAnalyzerPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAnalyze = useCallback(() => {
+    triggerAnalysis(input);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input]);
 
   const verdictConfig = result?.hybridAnalysis
     ? getVerdictConfig(result.hybridAnalysis.finalVerdict)
     : null;
 
+  if (status === "loading" || status === "unauthenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black dark:border-white"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Navbar />
       <main className="min-h-screen pt-24 pb-16 px-4">
-        {/* Background orbs */}
-        <div className="fixed top-[-200px] left-[-100px] w-[500px] h-[500px] rounded-full bg-cyber-pink/8 blur-[120px] pointer-events-none" />
-        <div className="fixed bottom-[-150px] right-[-80px] w-[400px] h-[400px] rounded-full bg-brand-600/8 blur-[100px] pointer-events-none" />
-
         <div className="max-w-5xl mx-auto space-y-8 relative z-10">
           {/* ---- Header ---- */}
           <motion.div
@@ -291,151 +322,87 @@ export default function InstagramAnalyzerPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-4"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 rounded-full border border-cyber-pink/30 bg-cyber-pink/10 text-cyber-pink text-xs font-semibold tracking-wider uppercase">
-              {/* <FiInstagram className="text-sm" /> */}
-              Profile Intelligence
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-black dark:text-white mb-2">
-              Social Media{" "}
-              <span className="gradient-text">Profile Analyzer</span>
+            <h1 className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-2">
+              Profile Analyzer
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm max-w-lg mx-auto">
-              Paste an social media profile URL or username. Our AI engine scrapes
-              public data via Apify, runs 9+ risk signals, and delivers a
-              real-time fake probability score with blockchain proof.
+              Paste an Instagram profile URL or username. Our AI engine analyzes
+              public data and delivers a real-time fake probability score.
             </p>
           </motion.div>
 
-          {/* ---- Tabs ---- */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-            {[
-              { id: "instagram", label: "Instagram", icon: FiInstagram },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    handleClear();
-                  }}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all ${
-                    isActive
-                      ? "bg-brand-600 text-white shadow-lg shadow-brand-600/30"
-                      : "bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 border border-gray-300 dark:border-zinc-700"
-                  }`}
-                >
-                  <Icon className={isActive ? "text-black dark:text-white" : "text-brand-700 dark:text-brand-400"} />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ---- Disclaimer ---- */}
-          <div className="glass-card p-4 border-cyber-amber/30 bg-cyber-amber/5 flex items-start gap-3 max-w-3xl mx-auto mb-8">
-            <FiAlertTriangle className="text-cyber-amber text-lg flex-shrink-0 mt-0.5" />
-            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-              <strong>Disclaimer:</strong> This website may not be completely accurate and could contain errors. Its analysis is based on heuristics and publicly available data, so please use the results as a guideline rather than an absolute truth.
-            </p>
-          </div>
-
-          {activeTab === "instagram" ? (
-            /* ---- Input Section ---- */
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="glass-card p-6 sm:p-8"
+          {/* ---- Input Section ---- */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card p-6 sm:p-8"
+          >
+            <label
+              htmlFor="instagram-input"
+              className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-3"
             >
-              <label
-                htmlFor="instagram-input"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
-              >
-                Enter Instagram Profile URL or Username
-              </label>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <FiInstagram className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-700 dark:text-brand-400 text-lg" />
-                  <input
-                    id="instagram-input"
-                    type="text"
-                    placeholder="https://instagram.com/username  or  @username"
-                    value={input}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-                    disabled={loading}
-                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-black dark:text-white placeholder:text-gray-500 dark:text-gray-400 focus:outline-none focus:border-brand-400/60 focus:ring-1 focus:ring-brand-400/30 transition-all text-sm disabled:opacity-50"
-                  />
-                  {detectedUsername && !loading && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-brand-700 dark:text-brand-300 font-mono bg-brand-500/10 px-2 py-0.5 rounded">
-                      @{detectedUsername}
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={handleAnalyze}
-                    disabled={loading || !input.trim()}
-                    className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyber-pink to-brand-600 text-black dark:text-white font-semibold text-sm shadow-lg shadow-cyber-pink/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
-                  >
-                    {loading ? (
-                      <FiLoader className="animate-spin" />
-                    ) : (
-                      <FiSearch />
-                    )}
-                    {loading ? "Analyzing…" : "Analyze"}
-                  </motion.button>
-                  {(input || result) && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={handleClear}
-                      className="flex items-center gap-1 px-4 py-3.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:border-slate-500 transition-all text-sm cursor-pointer"
-                    >
-                      <FiX />
-                      Clear
-                    </motion.button>
-                  )}
-                </div>
-              </div>
-
-              {/* Error */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 p-3 rounded-lg bg-cyber-red/10 border border-cyber-red/30 text-cyber-red text-sm flex items-center gap-2"
-                  >
-                    <FiAlertTriangle />
-                    {error}
-                  </motion.div>
+              Enter Instagram Profile URL or Username
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                <input
+                  id="instagram-input"
+                  type="text"
+                  placeholder="https://instagram.com/username  or  @username"
+                  value={input}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+                  disabled={loading}
+                  className="w-full pl-12 pr-4 py-3.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-black dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-400 dark:focus:border-neutral-500 transition-all text-sm disabled:opacity-50"
+                />
+                {detectedUsername && !loading && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-mono bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded">
+                    @{detectedUsername}
+                  </span>
                 )}
-              </AnimatePresence>
-            </motion.div>
-          ) : (
-            /* ---- Waiting to be built ---- */
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card p-12 text-center"
-            >
-              <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-full flex items-center justify-center mb-4">
-                <FiInfo className="text-2xl text-gray-700 dark:text-gray-300" />
               </div>
-              <h2 className="text-2xl font-bold text-black dark:text-white mb-2">Under Development</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mx-auto">
-                The analyzer for {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} is currently under development. Check back soon!
-              </p>
-            </motion.div>
-          )}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAnalyze}
+                  disabled={loading || !input.trim()}
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-lg bg-black dark:bg-white text-white dark:text-black font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  {loading ? (
+                    <FiLoader className="animate-spin" />
+                  ) : (
+                    <FiSearch />
+                  )}
+                  {loading ? "Analyzing…" : "Analyze"}
+                </button>
+                {(input || result) && (
+                  <button
+                    onClick={handleClear}
+                    className="flex items-center gap-1 px-4 py-3.5 rounded-lg border border-gray-200 dark:border-neutral-700 text-gray-500 hover:text-black dark:hover:text-white transition-colors text-sm cursor-pointer"
+                  >
+                    <FiX />
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Error */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-500 text-sm flex items-center gap-2"
+                >
+                  <FiAlertTriangle />
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           {/* ---- Loading State ---- */}
           <AnimatePresence>
@@ -446,35 +413,16 @@ export default function InstagramAnalyzerPage() {
                 exit={{ opacity: 0 }}
                 className="glass-card p-10 text-center"
               >
-                <div className="relative mx-auto w-20 h-20 mb-6">
-                  {/* Spinning ring */}
-                  <div className="absolute inset-0 rounded-full border-2 border-gray-300 dark:border-zinc-800" />
-                  <div className="absolute inset-0 rounded-full border-2 border-t-cyber-pink border-r-transparent border-b-transparent border-l-transparent animate-spin" />
-                  <div className="absolute inset-2 rounded-full border-2 border-t-transparent border-r-brand-400 border-b-transparent border-l-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
-                  <FiInstagram className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-cyber-pink text-2xl" />
+                <div className="relative mx-auto w-16 h-16 mb-6">
+                  <div className="absolute inset-0 rounded-full border-2 border-gray-200 dark:border-neutral-700" />
+                  <div className="absolute inset-0 rounded-full border-2 border-t-black dark:border-t-white border-r-transparent border-b-transparent border-l-transparent animate-spin" />
                 </div>
                 <h3 className="text-black dark:text-white font-semibold text-lg mb-2">
                   Scanning Profile…
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto">
-                  Fetching public Instagram data via Apify, running risk analysis
-                  across 9+ signals, and preparing your report.
+                <p className="text-gray-400 text-sm max-w-md mx-auto">
+                  Fetching public data, running AI analysis, and preparing your report.
                 </p>
-                {/* Animated dots */}
-                <div className="flex justify-center gap-1.5 mt-4">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <motion.div
-                      key={i}
-                      className="w-2 h-2 rounded-full bg-brand-400"
-                      animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                      transition={{
-                        duration: 1.2,
-                        repeat: Infinity,
-                        delay: i * 0.15,
-                      }}
-                    />
-                  ))}
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -505,16 +453,16 @@ export default function InstagramAnalyzerPage() {
                     {/* Avatar */}
                     <div className="flex-shrink-0 flex justify-center sm:justify-start">
                       <div className="relative">
-                        <div className={`w-24 h-24 rounded-full overflow-hidden border-2 ${verdictConfig?.border} ${verdictConfig?.glow} shadow-lg`}>
+                        <div className={`w-24 h-24 rounded-full overflow-hidden border-2 ${verdictConfig?.border}`}>
                           {result.apifyData.profilePicUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={`/api/instagram/proxy-image?url=${encodeURIComponent(result.apifyData.profilePicUrl)}`}
+                              src={result.apifyData.profilePicUrl}
                               alt={result.apifyData.username}
                               referrerPolicy="no-referrer"
                               crossOrigin="anonymous"
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Fallback: hide broken image and show icon
                                 const target = e.currentTarget;
                                 target.style.display = "none";
                                 const fallback = target.nextElementSibling as HTMLElement;
@@ -523,15 +471,15 @@ export default function InstagramAnalyzerPage() {
                             />
                           ) : null}
                           <div
-                            className="w-full h-full bg-gray-200 dark:bg-zinc-800 items-center justify-center"
+                            className="w-full h-full bg-gray-100 dark:bg-neutral-800 items-center justify-center"
                             style={{ display: result.apifyData.profilePicUrl ? "none" : "flex" }}
                           >
-                            <FiUsers className="text-3xl text-gray-500 dark:text-gray-400" />
+                            <FiUsers className="text-3xl text-gray-400" />
                           </div>
                         </div>
                         {result.apifyData.verified && (
-                          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-cyber-blue flex items-center justify-center border-2 border-surface-900">
-                            <FiCheckCircle className="text-black dark:text-white text-xs" />
+                          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white dark:border-black">
+                            <FiCheckCircle className="text-white text-xs" />
                           </div>
                         )}
                       </div>
@@ -544,17 +492,17 @@ export default function InstagramAnalyzerPage() {
                           {result.apifyData.fullName || result.apifyData.username}
                         </h2>
                         {result.apifyData.verified && (
-                          <span className="px-2 py-0.5 rounded text-xs bg-cyber-blue/20 text-cyber-blue border border-cyber-blue/30 font-medium">
+                          <span className="px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-500/10 text-blue-500 border border-blue-200 dark:border-blue-500/30 font-medium">
                             Verified
                           </span>
                         )}
                         {result.apifyData.isPrivate && (
-                          <span className="px-2 py-0.5 rounded text-xs bg-cyber-amber/20 text-cyber-amber border border-cyber-amber/30 font-medium">
+                          <span className="px-2 py-0.5 rounded text-xs bg-amber-50 dark:bg-amber-500/10 text-amber-500 border border-amber-200 dark:border-amber-500/30 font-medium">
                             Private
                           </span>
                         )}
                       </div>
-                      <p className="text-brand-700 dark:text-brand-300 text-sm font-mono mb-3">
+                      <p className="text-gray-500 text-sm font-mono mb-3">
                         @{result.apifyData.username}
                       </p>
                       {result.apifyData.biography && (
@@ -565,32 +513,16 @@ export default function InstagramAnalyzerPage() {
 
                       {/* Stats row */}
                       <div className="flex items-center justify-center sm:justify-start gap-6">
-                        <div className="text-center">
-                          <div className="text-black dark:text-white font-bold text-lg">
-                            {formatNumber(result.apifyData.postsCount)}
+                        {[
+                          { label: "Posts", value: formatNumber(result.apifyData.postsCount) },
+                          { label: "Followers", value: formatNumber(result.apifyData.followersCount) },
+                          { label: "Following", value: formatNumber(result.apifyData.followsCount) },
+                        ].map((stat) => (
+                          <div key={stat.label} className="text-center">
+                            <div className="text-black dark:text-white font-bold text-lg">{stat.value}</div>
+                            <div className="text-gray-400 text-xs uppercase tracking-wider">{stat.label}</div>
                           </div>
-                          <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                            Posts
-                          </div>
-                        </div>
-                        <div className="w-px h-8 bg-brand-500/20" />
-                        <div className="text-center">
-                          <div className="text-black dark:text-white font-bold text-lg">
-                            {formatNumber(result.apifyData.followersCount)}
-                          </div>
-                          <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                            Followers
-                          </div>
-                        </div>
-                        <div className="w-px h-8 bg-brand-500/20" />
-                        <div className="text-center">
-                          <div className="text-black dark:text-white font-bold text-lg">
-                            {formatNumber(result.apifyData.followsCount)}
-                          </div>
-                          <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                            Following
-                          </div>
-                        </div>
+                        ))}
                       </div>
 
                       {result.apifyData.externalUrl && (
@@ -598,7 +530,7 @@ export default function InstagramAnalyzerPage() {
                           href={result.apifyData.externalUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 mt-3 text-xs text-brand-700 dark:text-brand-300 hover:text-black dark:hover:text-white transition-colors"
+                          className="inline-flex items-center gap-1 mt-3 text-xs text-gray-500 hover:text-black dark:hover:text-white transition-colors"
                         >
                           <FiExternalLink />
                           {result.apifyData.externalUrl}
@@ -611,188 +543,116 @@ export default function InstagramAnalyzerPage() {
                 {/* ---- Risk Score + Verdict Row ---- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Risk Score Gauge */}
-                  <motion.div
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    className="glass-card p-6 flex flex-col items-center justify-center"
-                  >
-                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 text-center">
+                  <div className="glass-card p-6 flex flex-col items-center justify-center">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-3 text-center">
                       Final Hybrid Risk Score
                     </div>
                     <div className="relative w-28 h-28">
-                      <svg
-                        viewBox="0 0 120 120"
-                        className="w-full h-full -rotate-90"
-                      >
+                      <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(128,128,128,0.15)" strokeWidth="10" />
                         <circle
-                          cx="60"
-                          cy="60"
-                          r="50"
-                          fill="none"
-                          stroke="rgba(30,30,60,0.5)"
-                          strokeWidth="10"
-                        />
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r="50"
-                          fill="none"
+                          cx="60" cy="60" r="50" fill="none"
                           stroke={getRiskGaugeColor(result.hybridAnalysis.finalRiskScore)}
-                          strokeWidth="10"
-                          strokeLinecap="round"
+                          strokeWidth="10" strokeLinecap="round"
                           strokeDasharray={`${(result.hybridAnalysis.finalRiskScore / 100) * 314} 314`}
                           className="transition-all duration-1000"
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span
-                          className="text-3xl font-bold"
-                          style={{
-                            color: getRiskGaugeColor(result.hybridAnalysis.finalRiskScore),
-                          }}
-                        >
+                        <span className="text-3xl font-bold" style={{ color: getRiskGaugeColor(result.hybridAnalysis.finalRiskScore) }}>
                           {Math.round(result.hybridAnalysis.finalRiskScore)}
                         </span>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
 
                   {/* Fake Probability */}
-                  <motion.div
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="glass-card p-6 flex flex-col items-center justify-center"
-                  >
-                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 text-center">
-                      Final Fake Probability (Confidence)
+                  <div className="glass-card p-6 flex flex-col items-center justify-center">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-3 text-center">
+                      Fake Probability
                     </div>
-                    <div
-                      className="text-5xl font-extrabold mb-1"
-                      style={{
-                        color: getRiskGaugeColor(result.hybridAnalysis.finalFakeProbability),
-                      }}
-                    >
+                    <div className="text-5xl font-extrabold mb-1" style={{ color: getRiskGaugeColor(result.hybridAnalysis.finalFakeProbability) }}>
                       {Math.round(result.hybridAnalysis.finalFakeProbability)}%
                     </div>
-                    <div className="w-full mt-2 h-2 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
+                    <div className="w-full mt-2 h-2 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{
-                          width: `${result.hybridAnalysis.finalFakeProbability}%`,
-                        }}
+                        animate={{ width: `${result.hybridAnalysis.finalFakeProbability}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
                         className="h-full rounded-full"
-                        style={{
-                          backgroundColor: getRiskGaugeColor(
-                            result.hybridAnalysis.finalFakeProbability
-                          ),
-                        }}
+                        style={{ backgroundColor: getRiskGaugeColor(result.hybridAnalysis.finalFakeProbability) }}
                       />
                     </div>
-                  </motion.div>
+                  </div>
 
                   {/* Verdict Badge */}
-                  <motion.div
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className={`glass-card p-6 flex flex-col items-center justify-center border ${verdictConfig?.border}`}
-                  >
-                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 text-center">
+                  <div className={`glass-card p-6 flex flex-col items-center justify-center border ${verdictConfig?.border}`}>
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-3 text-center">
                       Final Verdict
                     </div>
-                    <div
-                      className={`w-16 h-16 rounded-full ${verdictConfig?.bg} flex items-center justify-center mb-3 ${verdictConfig?.glow} shadow-lg`}
-                    >
-                      {verdictConfig &&
-                        (() => {
-                          const Icon = verdictConfig.icon;
-                          return (
-                            <Icon
-                              className={`text-3xl ${verdictConfig.color}`}
-                            />
-                          );
-                        })()}
+                    <div className={`w-16 h-16 rounded-full ${verdictConfig?.bg} flex items-center justify-center mb-3`}>
+                      {verdictConfig && (() => { const Icon = verdictConfig.icon; return <Icon className={`text-3xl ${verdictConfig.color}`} />; })()}
                     </div>
-                    <div
-                      className={`text-lg font-bold ${verdictConfig?.color}`}
-                    >
+                    <div className={`text-lg font-bold ${verdictConfig?.color}`}>
                       {verdictConfig?.label}
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
 
-                {/* ---- Comparison Chart ---- */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="glass-card p-6 border-gray-300 dark:border-zinc-800"
-                >
-                    <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
-                      <FiShield className="text-cyber-blue" />
-                      Model Comparison
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {[
-                        { label: "Local Behavioral Analysis", score: result.internalAnalysis?.fakeProbability || 0, desc: "Internal ML Score", weight: `${result.hybridAnalysis.weights.internal}%` },
-                        { label: "Advanced Ensemble Verification", score: result.externalAnalysis?.unavailable ? 0 : (result.externalAnalysis?.fakeProbability || 0), desc: "External API Score", weight: `${result.hybridAnalysis.weights.external}%` },
-                        { label: "Hybrid AI Fraud Detection Score", score: result.hybridAnalysis.finalFakeProbability, desc: "Final Hybrid Score", weight: "100%" },
-                      ].map((model, idx) => (
-                        <div key={idx} className="bg-gray-100 dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 p-4 rounded-xl">
-                          <div className="flex justify-between items-end mb-2">
-                            <div>
-                              <div className="text-sm font-semibold text-black dark:text-white">{model.label}</div>
-                              <div className="text-[10px] text-gray-500 dark:text-gray-400">{model.desc} • Wt: {model.weight}</div>
-                            </div>
-                            <div className={`text-lg font-bold ${getRiskGaugeColor(model.score || 0)}`}>
-                              {Math.round(model.score || 0)}%
-                            </div>
+                {/* ---- Model Comparison ---- */}
+                <div className="glass-card p-6">
+                  <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <FiShield className="text-gray-400" />
+                    Model Comparison
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { label: "Local Behavioral Analysis", score: result.internalAnalysis?.fakeProbability || 0, desc: "Internal ML Score", weight: `${result.hybridAnalysis.weights.internal}%` },
+                      { label: "Advanced Ensemble Verification", score: result.externalAnalysis?.unavailable ? 0 : (result.externalAnalysis?.fakeProbability || 0), desc: "External API Score", weight: `${result.hybridAnalysis.weights.external}%` },
+                      { label: "Hybrid AI Fraud Detection", score: result.hybridAnalysis.finalFakeProbability, desc: "Final Hybrid Score", weight: "100%" },
+                    ].map((model, idx) => (
+                      <div key={idx} className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 p-4 rounded-lg">
+                        <div className="flex justify-between items-end mb-2">
+                          <div>
+                            <div className="text-sm font-medium text-black dark:text-white">{model.label}</div>
+                            <div className="text-[10px] text-gray-400">{model.desc} • Wt: {model.weight}</div>
                           </div>
-                          <div className="h-1.5 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${model.score}%` }}
-                              transition={{ duration: 0.8, delay: 0.5 + (idx * 0.1) }}
-                              className="h-full rounded-full"
-                              style={{ backgroundColor: getRiskGaugeColor(model.score || 0) }}
-                            />
+                          <div className="text-lg font-bold" style={{ color: getRiskGaugeColor(model.score || 0) }}>
+                            {Math.round(model.score || 0)}%
                           </div>
                         </div>
-                      ))}
-                    </div>
-                </motion.div>
+                        <div className="h-1.5 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${model.score}%` }}
+                            transition={{ duration: 0.8, delay: 0.5 + (idx * 0.1) }}
+                            className="h-full rounded-full"
+                            style={{ backgroundColor: getRiskGaugeColor(model.score || 0) }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 {/* ---- AI Prediction Insights ---- */}
                 {result.hybridAnalysis.aiExplanation && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.28 }}
-                    className="glass-card p-6 border-l-4 border-l-cyber-pink relative overflow-hidden"
-                  >
-                    {/* Glowing background highlights */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-pink/5 rounded-full blur-xl pointer-events-none" />
-                    
-                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand-500/10 pb-4 mb-4">
+                  <div className="glass-card p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 dark:border-neutral-800 pb-4 mb-4">
                       <h3 className="text-black dark:text-white font-semibold text-lg flex items-center gap-2">
-                        <FiCpu className="text-cyber-pink animate-pulse" />
+                        <FiCpu className="text-gray-400" />
                         AI Prediction Insights
                       </h3>
-                      
                       {result.hybridAnalysis.aiRiskLevel && (
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] uppercase tracking-wider text-gray-500">AI Risk Level:</span>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              result.hybridAnalysis.aiRiskLevel === "HIGH"
-                                ? "bg-cyber-red/10 text-cyber-red border border-cyber-red/30"
-                                : result.hybridAnalysis.aiRiskLevel === "MEDIUM"
-                                ? "bg-cyber-amber/10 text-cyber-amber border border-cyber-amber/30"
-                                : "bg-cyber-green/10 text-cyber-green border border-cyber-green/30"
-                            }`}
-                          >
+                          <span className="text-[10px] uppercase tracking-wider text-gray-400">AI Risk Level:</span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            result.hybridAnalysis.aiRiskLevel === "HIGH"
+                              ? "bg-red-50 dark:bg-red-500/10 text-red-500 border border-red-200 dark:border-red-500/30"
+                              : result.hybridAnalysis.aiRiskLevel === "MEDIUM"
+                              ? "bg-amber-50 dark:bg-amber-500/10 text-amber-500 border border-amber-200 dark:border-amber-500/30"
+                              : "bg-green-50 dark:bg-green-500/10 text-green-500 border border-green-200 dark:border-green-500/30"
+                          }`}>
                             {result.hybridAnalysis.aiRiskLevel}
                           </span>
                         </div>
@@ -800,15 +660,14 @@ export default function InstagramAnalyzerPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {/* Narrative & Verdict */}
                       <div className="md:col-span-2 space-y-4">
                         <div>
-                          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-mono">Prediction Summary</div>
-                          <div className="text-sm font-semibold text-black dark:text-white flex items-center gap-2">
-                            ML Verdict: 
+                          <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 font-mono">Prediction Summary</div>
+                          <div className="text-sm font-medium text-black dark:text-white flex items-center gap-2">
+                            ML Verdict:
                             <span className={
-                              result.hybridAnalysis.finalVerdict === "HIGHLY FAKE" ? "text-cyber-red" : 
-                              result.hybridAnalysis.finalVerdict === "SUSPICIOUS" ? "text-cyber-amber" : "text-cyber-green"
+                              result.hybridAnalysis.finalVerdict === "HIGHLY FAKE" ? "text-red-500" :
+                              result.hybridAnalysis.finalVerdict === "SUSPICIOUS" ? "text-amber-500" : "text-green-500"
                             }>
                               {result.hybridAnalysis.finalVerdict}
                             </span>
@@ -816,23 +675,20 @@ export default function InstagramAnalyzerPage() {
                           </div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-mono">AI Assessment Explanation</div>
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
-                            {parseMarkdown(result.hybridAnalysis.aiExplanation)}
-                          </div>
+                          <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-2 font-mono">AI Assessment</div>
+                          <div>{parseMarkdown(result.hybridAnalysis.aiExplanation)}</div>
                         </div>
                       </div>
 
-                      {/* Actionable Suggestions */}
                       {result.hybridAnalysis.aiSuggestions && result.hybridAnalysis.aiSuggestions.length > 0 && (
-                        <div className="bg-gray-100 dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 p-4 rounded-xl h-fit">
-                          <div className="text-xs text-brand-700 dark:text-brand-300 font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            <FiCheckCircle className="text-cyber-green shrink-0" /> Safety Suggestions
+                        <div className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 p-4 rounded-lg h-fit">
+                          <div className="text-xs text-black dark:text-white font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <FiCheckCircle className="text-green-500 shrink-0" /> Safety Suggestions
                           </div>
                           <ul className="space-y-2">
                             {result.hybridAnalysis.aiSuggestions.map((suggestion, idx) => (
-                              <li key={idx} className="flex gap-2 text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                                <span className="text-cyber-pink select-none font-bold">•</span>
+                              <li key={idx} className="flex gap-2 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                                <span className="text-black dark:text-white select-none font-bold">•</span>
                                 <span>{suggestion}</span>
                               </li>
                             ))}
@@ -840,99 +696,73 @@ export default function InstagramAnalyzerPage() {
                         </div>
                       )}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* ---- Risk Reasons ---- */}
                 {result.hybridAnalysis.combinedReasons.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="glass-card p-6"
-                  >
+                  <div className="glass-card p-6">
                     <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
-                      <FiFileText className="text-brand-700 dark:text-brand-400" />
+                      <FiFileText className="text-gray-400" />
                       Risk Analysis Breakdown
                     </h3>
                     <div className="space-y-3">
                       {result.hybridAnalysis.combinedReasons.map((reason, i) => (
-                        <motion.div
+                        <div
                           key={i}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.35 + i * 0.05 }}
-                          className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800"
+                          className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700"
                         >
-                          <div
-                            className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                              reason.weight > 0
-                                ? "bg-cyber-red/10 text-cyber-red"
-                                : "bg-cyber-green/10 text-cyber-green"
-                            }`}
-                          >
-                            {reason.weight > 0 ? (
-                              <FiAlertTriangle className="text-sm" />
-                            ) : (
-                              <FiCheckCircle className="text-sm" />
-                            )}
+                          <div className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            reason.weight > 0
+                              ? "bg-red-50 dark:bg-red-500/10 text-red-500"
+                              : "bg-green-50 dark:bg-green-500/10 text-green-500"
+                          }`}>
+                            {reason.weight > 0 ? <FiAlertTriangle className="text-sm" /> : <FiCheckCircle className="text-sm" />}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-black dark:text-white text-sm font-medium">
-                                {reason.signal}
-                              </span>
-                              <span
-                                className={`text-xs font-mono px-1.5 py-0.5 rounded ${
-                                  reason.weight > 0
-                                    ? "bg-cyber-red/10 text-cyber-red"
-                                    : "bg-cyber-green/10 text-cyber-green"
-                                }`}
-                              >
-                                {reason.weight > 0 ? "+" : ""}
-                                {reason.weight}
+                              <span className="text-black dark:text-white text-sm font-medium">{reason.signal}</span>
+                              <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                                reason.weight > 0
+                                  ? "bg-red-50 dark:bg-red-500/10 text-red-500"
+                                  : "bg-green-50 dark:bg-green-500/10 text-green-500"
+                              }`}>
+                                {reason.weight > 0 ? "+" : ""}{reason.weight}
                               </span>
                             </div>
-                            <p className="text-gray-700 dark:text-gray-300 text-xs mt-0.5 leading-relaxed">
-                              {reason.detail}
-                            </p>
+                            <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{reason.detail}</p>
                           </div>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
-                {/* ---- ML Ensemble Breakdown ---- */}
+                {/* ---- Internal Analysis Detail ---- */}
                 {result.internalAnalysis?.tabularScore !== undefined && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="glass-card p-6 border-gray-300 dark:border-zinc-800"
-                  >
+                  <div className="glass-card p-6">
                     <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
-                      <FiShield className="text-cyber-green" />
+                      <FiShield className="text-gray-400" />
                       Internal Analysis Detail
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {[
                         { label: "Profile Metadata Analysis", score: result.internalAnalysis.tabularScore, desc: "Account statistics & structural data", weight: "40%" },
-                        { label: "Image Authenticity Analysis", score: result.internalAnalysis.imageScore, desc: "Profile picture verification & impersonation check", weight: "30%" },
+                        { label: "Image Authenticity Analysis", score: result.internalAnalysis.imageScore, desc: "Profile picture verification", weight: "30%" },
                         { label: "Bio & Content Analysis", score: result.internalAnalysis.bioScore, desc: "Spam, phishing & language patterns", weight: "20%" },
                         { label: "Behavioral Anomaly Detection", score: result.internalAnalysis.anomalyScore, desc: "Outlier activity & bot-like behavior", weight: "10%" },
                       ].map((model, idx) => (
-                        <div key={idx} className="bg-gray-100 dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 p-4 rounded-xl">
+                        <div key={idx} className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 p-4 rounded-lg">
                           <div className="flex justify-between items-end mb-2">
                             <div>
-                              <div className="text-sm font-semibold text-black dark:text-white">{model.label}</div>
-                              <div className="text-[10px] text-gray-500 dark:text-gray-400">{model.desc} • Wt: {model.weight}</div>
+                              <div className="text-sm font-medium text-black dark:text-white">{model.label}</div>
+                              <div className="text-[10px] text-gray-400">{model.desc} • Wt: {model.weight}</div>
                             </div>
-                            <div className={`text-lg font-bold ${getRiskGaugeColor(model.score || 0)}`}>
+                            <div className="text-lg font-bold" style={{ color: getRiskGaugeColor(model.score || 0) }}>
                               {Math.round(model.score || 0)}%
                             </div>
                           </div>
-                          <div className="h-1.5 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
+                          <div className="h-1.5 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${model.score}%` }}
@@ -944,92 +774,65 @@ export default function InstagramAnalyzerPage() {
                         </div>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* ---- Blockchain Proof ---- */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="glass-card p-6"
-                >
+                <div className="glass-card p-6">
                   <h3 className="text-black dark:text-white font-semibold text-lg mb-4 flex items-center gap-2">
-                    <FiLink className="text-brand-700 dark:text-brand-400" />
+                    <FiLink className="text-gray-400" />
                     Blockchain Verification Proof
                   </h3>
                   {result.blockchainProof ? (
                     <div className="space-y-3">
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-cyber-green/10">
-                        <FiHash className="text-cyber-green mt-0.5 flex-shrink-0" />
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-green-100 dark:border-green-500/10">
+                        <FiHash className="text-green-500 mt-0.5 flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                            Verification Hash
-                          </div>
-                          <div className="text-sm text-black dark:text-white font-mono break-all">
-                            {result.blockchainProof.dataHash}
-                          </div>
+                          <div className="text-xs text-gray-400 mb-0.5">Verification Hash</div>
+                          <div className="text-sm text-black dark:text-white font-mono break-all">{result.blockchainProof.dataHash}</div>
                         </div>
                       </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800">
-                        <FiLink className="text-brand-700 dark:text-brand-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700">
+                        <FiLink className="text-gray-400 mt-0.5 flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                            Transaction Hash
-                          </div>
-                          <div className="text-sm text-brand-700 dark:text-brand-300 font-mono break-all">
-                            {result.blockchainProof.txHash}
-                          </div>
+                          <div className="text-xs text-gray-400 mb-0.5">Transaction Hash</div>
+                          <div className="text-sm text-black dark:text-white font-mono break-all">{result.blockchainProof.txHash}</div>
                         </div>
                       </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-zinc-900/60 border border-gray-300 dark:border-zinc-800">
-                        <FiClock className="text-gray-700 dark:text-gray-300 mt-0.5 flex-shrink-0" />
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700">
+                        <FiClock className="text-gray-400 mt-0.5 flex-shrink-0" />
                         <div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                            Timestamp
-                          </div>
-                          <div className="text-sm text-black dark:text-white">
-                            {new Date(
-                              result.blockchainProof.timestamp
-                            ).toLocaleString()}
-                          </div>
+                          <div className="text-xs text-gray-400 mb-0.5">Timestamp</div>
+                          <div className="text-sm text-black dark:text-white">{new Date(result.blockchainProof.timestamp).toLocaleString()}</div>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 rounded-lg bg-gray-100 dark:bg-zinc-900/40 border border-gray-300 dark:border-zinc-800 text-center">
-                      <FiInfo className="mx-auto text-2xl text-gray-500 dark:text-gray-400 mb-2" />
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    <div className="p-4 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-center">
+                      <FiInfo className="mx-auto text-2xl text-gray-300 dark:text-gray-600 mb-2" />
+                      <p className="text-gray-400 text-sm">
                         Blockchain proof was not generated for this scan.
-                        This may be due to network configuration or wallet balance.
                       </p>
                     </div>
                   )}
-                </motion.div>
+                </div>
 
                 {/* ---- Human Feedback Form ---- */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="mt-8"
-                >
+                <div className="mt-8">
                   {!showFeedback ? (
-                    <div className="glass-card p-6 text-center border-gray-300 dark:border-zinc-800">
+                    <div className="glass-card p-6 text-center">
                       <h3 className="text-black dark:text-white font-semibold text-lg mb-2">
                         Was this prediction accurate?
                       </h3>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                        Your feedback helps improve our AI model for everyone.
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        Your feedback helps improve our AI model.
                       </p>
-                      <div className="flex justify-center gap-4">
-                        <button
-                          onClick={() => setShowFeedback(true)}
-                          className="px-6 py-2.5 rounded-xl border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors text-sm font-medium"
-                        >
-                          Incorrect — Submit Feedback
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setShowFeedback(true)}
+                        className="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-neutral-700 text-gray-500 hover:text-black dark:hover:text-white hover:border-gray-400 dark:hover:border-neutral-500 transition-colors text-sm font-medium cursor-pointer"
+                      >
+                        Incorrect — Submit Feedback
+                      </button>
                     </div>
                   ) : (
                     <FeedbackForm
@@ -1040,7 +843,14 @@ export default function InstagramAnalyzerPage() {
                       onClose={() => setShowFeedback(false)}
                     />
                   )}
-                </motion.div>
+                </div>
+
+                {/* ---- Disclaimer (AFTER results) ---- */}
+                <div className="mt-6 p-4 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900">
+                  <p className="text-gray-400 text-xs text-center leading-relaxed">
+                    <strong className="text-gray-500">Disclaimer:</strong> This analysis is AI-assisted and should not be considered final proof of authenticity. Results are based on heuristics and publicly available data.
+                  </p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1048,5 +858,19 @@ export default function InstagramAnalyzerPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+// ---------- Page Component ----------
+
+export default function InstagramAnalyzerPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black dark:border-white"></div>
+      </div>
+    }>
+      <AnalyzerContent />
+    </Suspense>
   );
 }

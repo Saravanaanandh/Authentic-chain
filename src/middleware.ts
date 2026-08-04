@@ -16,5 +16,9 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/dashboard/:path*"], // Apply middleware only to dashboard routes
+  matcher: [
+    "/dashboard/:path*",
+    "/history/:path*",
+    "/profile/:path*",
+  ],
 };

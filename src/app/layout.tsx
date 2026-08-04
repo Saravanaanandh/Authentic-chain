@@ -4,14 +4,14 @@ import AuthProvider from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "FakeID Shield — Fake Profile Detection System",
+  title: "Authentic Chain — Fake Profile Detection",
   description:
-    "AI-powered fake social media profile detection using multi-layer analysis, image comparison, and blockchain-backed verification proof.",
+    "AI-powered fake social media profile detection using multi-layer analysis and blockchain-backed verification.",
   keywords: [
     "fake profile detection",
     "social media verification",
     "blockchain proof",
-    "image comparison",
+    "AI analysis",
   ],
 };
 
@@ -30,13 +30,15 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased bg-white dark:bg-black text-gray-700 dark:text-gray-300 min-h-screen transition-colors duration-300">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>{children}</AuthProvider>
+      <body className="font-sans antialiased min-h-screen transition-colors duration-200">
+        <ThemeProvider attribute="class" defaultTheme="light">
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

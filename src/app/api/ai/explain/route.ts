@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { explainPrediction } from "@/services/aiExplanationService";
 
+export const dynamic = "force-dynamic";
+
 /**
  * POST /api/ai/explain
  * Accept prediction results and metadata to generate a Generative AI explanation.

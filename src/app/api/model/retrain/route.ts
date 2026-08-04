@@ -4,6 +4,8 @@ import { connectDB } from "@/lib/mongodb";
 import ModelFeedback from "@/lib/models/ModelFeedback";
 import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const { authOptions } = await import("@/lib/auth");

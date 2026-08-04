@@ -65,4 +65,13 @@ def retrain_model(authorization: Optional[str] = Header(None)):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+    port = int(os.getenv("PORT", 8000))
+    host = os.getenv("HOST", "0.0.0.0")
+    print(f"🚀 Starting Python ML Microservice on {host}:{port}")
+    uvicorn.run(app, host=host, port=port)
+

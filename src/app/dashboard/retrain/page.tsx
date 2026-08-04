@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiCpu, FiTrendingUp, FiCheckCircle, FiClock, FiActivity, FiLayers, FiAlertTriangle, FiRefreshCw } from "react-icons/fi";

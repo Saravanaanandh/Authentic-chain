@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  cleanDistDir: true,
   images: {
     remotePatterns: [
       {
@@ -25,7 +27,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Increase server body size limit for image uploads (base64 can be large)
   serverExternalPackages: ["mongoose"],
 };
 

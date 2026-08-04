@@ -4,9 +4,10 @@
   "description": "Fake Social Media Profile Detection System",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node scripts/verify-build-cache.js dev && next dev",
+    "build": "node scripts/verify-build-cache.js build && next build",
+    "start": "node scripts/verify-build-cache.js start && next start",
+    "clean": "node -e \"require('fs').rmSync('./.next', { recursive: true, force: true })\"",
     "lint": "next lint"
   },
   "dependencies": {

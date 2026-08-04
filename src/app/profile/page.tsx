@@ -33,8 +33,8 @@ export default function ProfilePage() {
 
   if (status === "loading" || status === "unauthenticated") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black dark:border-white"></div>
       </div>
     );
   }
@@ -52,36 +52,24 @@ export default function ProfilePage() {
       label: "Analysis History",
       description: "View all previous profile scans",
       icon: FiClock,
-      color: "text-brand-700 dark:text-brand-400",
-      bg: "bg-brand-400/10",
-      border: "border-brand-400/20"
     },
     {
       href: "/how-to-use",
       label: "How to Use",
-      description: "Learn how FakeID Shield works",
+      description: "Learn how Authentic Chain works",
       icon: FiBookOpen,
-      color: "text-cyber-blue",
-      bg: "bg-cyber-blue/10",
-      border: "border-cyber-blue/20"
     },
     {
       href: "/privacy-policy",
       label: "Privacy Policy",
       description: "How we handle your data",
       icon: FiShield,
-      color: "text-cyber-green",
-      bg: "bg-cyber-green/10",
-      border: "border-cyber-green/20"
     },
     {
       href: "/terms",
       label: "Terms of Service",
       description: "Rules and guidelines",
       icon: FiFileText,
-      color: "text-cyber-purple",
-      bg: "bg-cyber-purple/10",
-      border: "border-cyber-purple/20"
     }
   ];
 
@@ -97,25 +85,26 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             className="glass-card p-8 flex flex-col md:flex-row items-center gap-6"
           >
-            <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-zinc-900 border-2 border-gray-300 dark:border-zinc-800 flex items-center justify-center overflow-hidden shrink-0 shadow-xl shadow-brand-500/20">
+            <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-neutral-800 border-2 border-gray-200 dark:border-neutral-700 flex items-center justify-center overflow-hidden shrink-0">
               {session?.user?.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <FiUser className="text-4xl text-brand-700 dark:text-brand-400" />
+                <FiUser className="text-4xl text-gray-400" />
               )}
             </div>
             
             <div className="text-center md:text-left flex-1">
               <h1 className="text-2xl font-bold text-black dark:text-white mb-1">{session?.user?.name || "User"}</h1>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">{session?.user?.email}</p>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/10 border border-gray-300 dark:border-zinc-800 text-xs font-medium text-brand-700 dark:text-brand-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse"></span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-xs font-medium text-gray-600 dark:text-gray-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                 {session?.user?.role === "admin" ? "Administrator" : "Standard Account"}
               </div>
             </div>
             
             <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto mt-4 md:mt-0">
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Appearance</span>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Appearance</span>
               <ThemeToggle />
             </div>
           </motion.div>
@@ -130,8 +119,8 @@ export default function ProfilePage() {
             {menuItems.map((item, i) => (
               <Link key={i} href={item.href}>
                 <div className="glass-card glass-card-hover p-5 h-full flex items-start gap-4 transition-all cursor-pointer">
-                  <div className={`p-3 rounded-xl ${item.bg} ${item.border} border`}>
-                    <item.icon className={`text-xl ${item.color}`} />
+                  <div className="p-3 rounded-xl bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700">
+                    <item.icon className="text-xl text-black dark:text-white" />
                   </div>
                   <div>
                     <h3 className="text-black dark:text-white font-semibold mb-1">{item.label}</h3>
@@ -147,23 +136,23 @@ export default function ProfilePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="glass-card p-6 border-cyber-red/20"
+            className="glass-card p-6 border-red-200 dark:border-red-500/20"
           >
-            <h3 className="text-cyber-red font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-red-500 font-bold mb-4 flex items-center gap-2">
               <FiAlertTriangle className="text-lg" /> Danger Zone
             </h3>
             
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-black dark:text-white font-medium hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-black dark:text-white font-medium hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
               >
                 <FiLogOut /> Secure Logout
               </button>
               
               <button 
                 onClick={() => setDeleteModalOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cyber-red/10 border border-cyber-red/30 text-cyber-red font-medium hover:bg-cyber-red hover:text-white transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-500 font-medium hover:bg-red-500 hover:text-white transition-all cursor-pointer"
               >
                 <FiTrash2 /> Delete Account
               </button>
@@ -177,7 +166,7 @@ export default function ProfilePage() {
         isOpen={isDeleteModalOpen} 
         onClose={() => setDeleteModalOpen(false)} 
         onConfirm={handleDeleteConfirm}
-        isGoogleUser={!!session?.user?.image} // Basic heuristic for OAuth user vs Credentials user
+        isGoogleUser={!!session?.user?.image}
       />
     </>
   );

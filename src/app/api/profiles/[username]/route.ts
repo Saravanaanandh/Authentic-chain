@@ -6,6 +6,8 @@ import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 /* ---------- GET — Fetch a single profile by username ---------- */
 export async function GET(
   _req: NextRequest,
