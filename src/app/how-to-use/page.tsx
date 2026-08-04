@@ -54,8 +54,8 @@ export default function HowToUsePage() {
               </div>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Navigate to Instagram and copy the URL of the profile you want to verify, or simply note down their exact username.</p>
               <div className="bg-gray-100 dark:bg-zinc-900/50 p-4 rounded-lg border border-gray-300 dark:border-zinc-700">
-                <p className="text-gray-700 dark:text-gray-300 font-mono text-sm">Example: <span className="text-brand-700 dark:text-brand-300">https://instagram.com/itz__me__saravana18</span></p>
-                <p className="text-gray-700 dark:text-gray-300 font-mono text-sm mt-2">Or just: <span className="text-brand-700 dark:text-brand-300">@itz__me__saravana18</span></p>
+                <p className="text-gray-700 dark:text-gray-300 font-mono text-sm">Example: <span className="text-brand-700 dark:text-brand-300">https://instagram.com/username</span></p>
+                <p className="text-gray-700 dark:text-gray-300 font-mono text-sm mt-2">Or just: <span className="text-brand-700 dark:text-brand-300">@username</span></p>
               </div>
             </motion.div>
 
@@ -98,9 +98,9 @@ export default function HowToUsePage() {
               </div>
 
               <div className="bg-gray-100 dark:bg-zinc-900/50 p-4 rounded-lg border border-gray-300 dark:border-zinc-700">
-                <h4 className="text-black dark:text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiFileText className="text-brand-700 dark:text-brand-400" /> Example Breakdown: @itz__me__saravana18</h4>
+                <h4 className="text-black dark:text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiFileText className="text-brand-700 dark:text-brand-400" /> Example Breakdown: @username</h4>
                 <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                  <li>• <strong>Posts:</strong> 2 | <strong>Followers:</strong> 132 | <strong>Following:</strong> 443</li>
+                  <li>• <strong>Posts:</strong> N/A | <strong>Followers:</strong> N/A | <strong>Following:</strong> N/A</li>
                   <li>• <strong>Risk Signals Triggered:</strong> Very Few Posts (+8), Private Account (+5)</li>
                   <li>• <strong>Total Risk Score:</strong> 13 / 100</li>
                   <li>• <strong className="text-cyber-green">Verdict: Likely Real</strong></li>

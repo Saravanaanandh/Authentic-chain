@@ -18,6 +18,7 @@ import { analyzeInstagramProfile } from "@/lib/fakeScoreEngine";
 import { storeOnBlockchain } from "@/lib/blockchain";
 import { connectDB } from "@/lib/mongodb";
 import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
+import PredictionHistory from "@/lib/models/PredictionHistory";
 import { mapApifyToPredictionInput, callExternalPredictionAPI } from "@/services/externalPredictionService";
 import { calculateHybridScore } from "@/utils/hybridScoreEngine";
 import { validateProfileExists, returnValidationError } from "@/utils/profileExistenceValidator";
@@ -235,6 +236,7 @@ export async function POST(req: NextRequest) {
       input: rawInput,
       username: profileData.username,
       profileData: {
+        username: profileData.username,
         fullName: profileData.fullName,
         biography: profileData.biography,
         followersCount: profileData.followersCount,
@@ -266,6 +268,41 @@ export async function POST(req: NextRequest) {
       blockchainTx: blockchainProof?.txHash || "",
       scannedBy,
     });
+
+    // Step 4: Persist to prediction_history collection
+    try {
+      const predId = crypto.randomUUID();
+      await PredictionHistory.create({
+        predictionId: predId,
+        username: profileData.username,
+        profileFeatures: {
+          platform: "instagram",
+          followers: profileData.followersCount,
+          following: profileData.followsCount,
+          posts: profileData.postsCount,
+          verified: profileData.verified,
+          bio: profileData.biography,
+          profileImageUrl: cloudinaryImageUrl || profileData.profilePicUrl,
+        },
+        prediction: hybridAnalysis.finalVerdict,
+        confidence: Math.min(100, Math.abs(hybridAnalysis.finalFakeProbability - 50) * 2),
+        riskScore: hybridAnalysis.finalFakeProbability,
+        modelsUsed: [
+          "Decision Tree Classifier",
+          "Random Forest Classifier",
+          "Naive Bayes Classifier",
+          "XGBoost Classifier",
+          "LightGBM Classifier",
+          "Isolation Forest Anomaly Detector"
+        ],
+        predictionTimestamp: new Date(),
+        blockchainHash: blockchainProof?.dataHash || "",
+        cloudinaryImageUrl: cloudinaryImageUrl || profileData.profilePicUrl,
+        feedbackStatus: "pending",
+      });
+    } catch (phErr) {
+      console.warn("⚠️  PredictionHistory write warning:", phErr);
+    }
 
     // ---- Response ----
     // Return Cloudinary URL in apifyData for frontend display

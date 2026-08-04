@@ -8,3 +8,5 @@ lightgbm
 pydantic
 python-multipart
 joblib
+pymongo
+python-dotenv

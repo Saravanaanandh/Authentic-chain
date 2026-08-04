@@ -482,14 +482,6 @@ export default function DashboardPage() {
                         </div>
                         <div className="col-span-2 flex justify-end gap-2">
                           <button
-                            onClick={() => handleToggleUserRole(u.email, u.role)}
-                            disabled={isActionLoading}
-                            className="p-1.5 rounded bg-neutral-900 border border-neutral-800 hover:border-neutral-600 text-xs font-medium cursor-pointer"
-                            title={u.role === "admin" ? "Demote to User" : "Promote to Admin"}
-                          >
-                            Toggle Role
-                          </button>
-                          <button
                             onClick={() => handleDeleteUser(u.email)}
                             disabled={isActionLoading}
                             className="p-1.5 rounded bg-neutral-900 border border-neutral-800 hover:border-red-500/50 hover:bg-red-500/10 text-red-500 cursor-pointer"

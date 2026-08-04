@@ -5,16 +5,18 @@ export interface IModelFeedback extends Document {
   sourcePlatform: string;
   originalPrediction: string;
   originalFakeProbability: number;
-  userCorrectedLabel: "Real" | "Fake" | "Suspicious";
+  userCorrectedLabel: string;
+  isCorrect?: boolean;
   feedbackReason: string;
   notes?: string;
   profileSnapshot?: any;
-  submittedAt: Date;
-  reviewed: boolean;
-  approvedForTraining: boolean;
-  reviewedBy?: string;
-  reviewedAt?: Date;
-  submittedBy?: string; // user email or "anonymous"
+  submittedBy?: string;
+  source: string;
+  verified: boolean;
+  reviewed?: boolean;
+  approvedForTraining?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const ModelFeedbackSchema = new Schema<IModelFeedback>(
@@ -23,24 +25,20 @@ const ModelFeedbackSchema = new Schema<IModelFeedback>(
     sourcePlatform: { type: String, default: "instagram" },
     originalPrediction: { type: String, required: true },
     originalFakeProbability: { type: Number, required: true },
-    userCorrectedLabel: {
-      type: String,
-      enum: ["Real", "Fake", "Suspicious"],
-      required: true,
-    },
+    userCorrectedLabel: { type: String, required: true },
+    isCorrect: { type: Boolean },
     feedbackReason: { type: String, required: true },
     notes: { type: String, default: "" },
     profileSnapshot: { type: Schema.Types.Mixed },
-    submittedAt: { type: Date, default: Date.now },
-    reviewed: { type: Boolean, default: false },
-    approvedForTraining: { type: Boolean, default: false },
-    reviewedBy: { type: String },
-    reviewedAt: { type: Date },
     submittedBy: { type: String, default: "anonymous" },
+    source: { type: String, default: "user_feedback" },
+    verified: { type: Boolean, default: true },
+    reviewed: { type: Boolean, default: false },
+    approvedForTraining: { type: Boolean, default: true },
   },
   {
     timestamps: true,
-    collection: "model_feedback",
+    collection: "feedback_data",
   }
 );
 

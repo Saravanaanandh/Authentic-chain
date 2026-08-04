@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiSearch,
@@ -133,10 +133,57 @@ export default function ProfileReport({
   loading = false,
   error = null,
 }: ProfileReportProps) {
+  const rawProfile = data.apifyData || data.profileData;
+  const extractedUsername =
+    rawProfile?.username ||
+    data.username ||
+    (typeof input === "string" ? input.replace(/^@/, "").replace(/.*instagram\.com\//, "").split("/")[0].split("?")[0].trim() : "") ||
+    "";
+
+  const profile = rawProfile
+    ? {
+        ...rawProfile,
+        username: rawProfile.username || extractedUsername,
+      }
+    : extractedUsername
+    ? {
+        username: extractedUsername,
+        fullName: extractedUsername,
+        biography: "",
+        followersCount: 0,
+        followsCount: 0,
+        postsCount: 0,
+        verified: false,
+        profilePicUrl: "",
+        isPrivate: false,
+        externalUrl: "",
+      }
+    : null;
+
+  const targetUsername = profile?.username || extractedUsername;
+
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(!!data.hasSubmittedFeedback);
 
-  const profile = data.apifyData || data.profileData;
+  useEffect(() => {
+    if (!targetUsername) return;
+    const localSubmitted = typeof window !== "undefined" ? localStorage.getItem(`feedback_submitted_${targetUsername}`) : null;
+    if (localSubmitted === "true" || data.hasSubmittedFeedback) {
+      setFeedbackSubmitted(true);
+      return;
+    }
+    fetch(`/api/feedback/check?username=${encodeURIComponent(targetUsername)}`)
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData?.hasSubmitted) {
+          setFeedbackSubmitted(true);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`feedback_submitted_${targetUsername}`, "true");
+          }
+        }
+      })
+      .catch(() => {});
+  }, [targetUsername, data.hasSubmittedFeedback]);
   const hybrid = data.hybridAnalysis || {
     finalRiskScore: data.analysis?.riskScore || 0,
     finalFakeProbability: data.analysis?.fakeProbability || 0,
@@ -488,10 +535,16 @@ export default function ProfileReport({
         )}
       </div>
 
-      {/* ---- Human Feedback Form (Shown ONLY IF feedback has NOT been given yet) ---- */}
-      {profile && !feedbackSubmitted && (
+      {/* ---- Human Feedback Form ---- */}
+      {profile && (
         <div className="mt-8">
-          {!showFeedback ? (
+          {feedbackSubmitted ? (
+            <div className="glass-card p-4 text-center bg-gray-50/50 dark:bg-neutral-900/50 border border-green-500/20">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center justify-center gap-2">
+                <FiCheckCircle className="text-green-500 text-base" /> Feedback has already been submitted for this profile.
+              </p>
+            </div>
+          ) : !showFeedback ? (
             <div className="glass-card p-6 text-center">
               <h3 className="text-black dark:text-white font-semibold text-lg mb-2">
                 Was this prediction accurate?
@@ -508,13 +561,19 @@ export default function ProfileReport({
             </div>
           ) : (
             <FeedbackForm
-              username={profile.username}
+              username={targetUsername}
               originalPrediction={hybrid.finalVerdict}
               originalFakeProbability={hybrid.finalFakeProbability}
               profileSnapshot={profile}
               onClose={() => {
                 setShowFeedback(false);
+              }}
+              onSuccess={() => {
                 setFeedbackSubmitted(true);
+                setShowFeedback(false);
+                if (targetUsername && typeof window !== "undefined") {
+                  localStorage.setItem(`feedback_submitted_${targetUsername}`, "true");
+                }
               }}
             />
           )}

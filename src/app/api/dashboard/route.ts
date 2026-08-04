@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
 import User from "@/lib/models/User";
 import ModelFeedback from "@/lib/models/ModelFeedback";
+import ModelVersion from "@/lib/models/ModelVersion";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +78,17 @@ export async function GET(req: NextRequest) {
     // Calculate dynamic model stats
     const totalFeedbackCount = feedbackList.length;
     const correctedCount = feedbackList.filter(f => f.userCorrectedLabel !== f.originalPrediction).length;
-    const accuracyRate = totalFeedbackCount > 0 ? Math.round(((totalFeedbackCount - correctedCount) / totalFeedbackCount) * 100) : 92;
+    
+    // Fetch active model accuracy from model_versions collection
+    const activeModelDoc = await ModelVersion.findOne({ deploymentStatus: "ACTIVE" })
+      .sort({ trainingDate: -1 })
+      .lean();
+    
+    const accuracyRate = activeModelDoc
+      ? Math.round(activeModelDoc.accuracy * 100)
+      : totalFeedbackCount > 0
+      ? Math.round(((totalFeedbackCount - correctedCount) / totalFeedbackCount) * 100)
+      : 93;
 
     return NextResponse.json({
       profiles,

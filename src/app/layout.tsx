@@ -13,6 +13,11 @@ export const metadata: Metadata = {
     "blockchain proof",
     "AI analysis",
   ],
+  icons: {
+    icon: "/aclogo.png",
+    shortcut: "/aclogo.png",
+    apple: "/aclogo.png",
+  },
 };
 
 export default function RootLayout({
@@ -23,6 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/aclogo.png" type="image/png" />
+        <link rel="shortcut icon" href="/aclogo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/aclogo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

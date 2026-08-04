@@ -11,6 +11,7 @@ export interface IInstagramAnalysis extends Document {
   input: string;                // original user input
   username: string;             // extracted clean username
   profileData: {
+    username?: string;
     fullName: string;
     biography: string;
     followersCount: number;
@@ -61,6 +62,7 @@ const InstagramAnalysisSchema = new Schema<IInstagramAnalysis>(
       index: true,
     },
     profileData: {
+      username: { type: String, default: "" },
       fullName: { type: String, default: "" },
       biography: { type: String, default: "" },
       followersCount: { type: Number, default: 0 },

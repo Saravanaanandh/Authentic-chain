@@ -99,17 +99,10 @@ export default function HistoryPage() {
     const reportData: ProfileReportData = selectedProfile.fullDoc
       ? {
           success: true,
-          apifyData: selectedProfile.fullDoc.profileData || {
+          username: selectedProfile.username,
+          apifyData: {
             username: selectedProfile.username,
-            fullName: selectedProfile.username,
-            biography: selectedProfile.bio,
-            followersCount: selectedProfile.followers,
-            followsCount: 0,
-            postsCount: selectedProfile.posts,
-            verified: false,
-            profilePicUrl: selectedProfile.imageUrl,
-            isPrivate: false,
-            externalUrl: "",
+            ...(selectedProfile.fullDoc.profileData || {}),
           },
           hybridAnalysis: selectedProfile.fullDoc.hybridAnalysis || {
             finalRiskScore: selectedProfile.riskScore,

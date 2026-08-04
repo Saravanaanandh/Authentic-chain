@@ -5,11 +5,12 @@ import { motion } from "framer-motion";
 import { FiMessageSquare, FiSend, FiLoader, FiCheckCircle } from "react-icons/fi";
 
 interface FeedbackFormProps {
-  username: string;
-  originalPrediction: string;
-  originalFakeProbability: number;
+  username?: string;
+  originalPrediction?: string;
+  originalFakeProbability?: number;
   profileSnapshot?: any;
   onClose?: () => void;
+  onSuccess?: () => void;
 }
 
 export default function FeedbackForm({
@@ -18,6 +19,7 @@ export default function FeedbackForm({
   originalFakeProbability,
   profileSnapshot,
   onClose,
+  onSuccess,
 }: FeedbackFormProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -31,10 +33,21 @@ export default function FeedbackForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.userCorrectedLabel || !form.feedbackReason) {
-      setError("Please fill out required fields.");
+    
+    const targetUsername = (username || profileSnapshot?.username || "").trim();
+    const targetPrediction = originalPrediction || "SUSPICIOUS";
+    const targetFakeProb = originalFakeProbability ?? 50;
+
+    if (!targetUsername) {
+      setError("Username is missing from profile data.");
       return;
     }
+
+    if (!form.userCorrectedLabel || !form.feedbackReason) {
+      setError("Please select Actual Result and Reason.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -43,22 +56,23 @@ export default function FeedbackForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username,
+          username: targetUsername,
           sourcePlatform: "instagram",
-          originalPrediction,
-          originalFakeProbability,
+          originalPrediction: targetPrediction,
+          originalFakeProbability: targetFakeProb,
           userCorrectedLabel: form.userCorrectedLabel,
           feedbackReason: form.feedbackReason,
           notes: form.notes,
-          profileSnapshot,
+          profileSnapshot: profileSnapshot || { username: targetUsername },
         }),
       });
 
       const data = await res.json();
-      if (!data.success) {
+      if (!res.ok || !data.success) {
         setError(data.error || "Failed to submit feedback.");
       } else {
         setSuccess(true);
+        if (onSuccess) onSuccess();
       }
     } catch (err) {
       setError("Network error. Please try again.");
@@ -78,7 +92,7 @@ export default function FeedbackForm({
         {onClose && (
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:bg-zinc-700 rounded-lg text-sm text-black dark:text-white transition-colors"
+            className="px-4 py-2 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-lg text-sm text-black dark:text-white transition-colors cursor-pointer"
           >
             Close
           </button>
@@ -96,14 +110,14 @@ export default function FeedbackForm({
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 rounded bg-cyber-red/10 border border-cyber-red/30 text-cyber-red text-sm">
+          <div className="p-3 rounded bg-red-500/10 border border-red-500/30 text-red-500 dark:text-red-400 text-sm font-medium">
             {error}
           </div>
         )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Actual Result <span className="text-cyber-red">*</span>
+            Actual Result <span className="text-red-500">*</span>
           </label>
           <select
             value={form.userCorrectedLabel}
@@ -120,7 +134,7 @@ export default function FeedbackForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Reason <span className="text-cyber-red">*</span>
+            Reason <span className="text-red-500">*</span>
           </label>
           <select
             value={form.feedbackReason}
@@ -157,7 +171,7 @@ export default function FeedbackForm({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:border-slate-500 text-sm transition-colors"
+              className="px-4 py-2 rounded-lg border border-slate-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:border-slate-500 text-sm transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -167,7 +181,7 @@ export default function FeedbackForm({
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg bg-brand-600 text-white font-semibold text-sm hover:bg-brand-500 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2 rounded-lg bg-brand-600 text-white font-semibold text-sm hover:bg-brand-500 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {loading ? <FiLoader className="animate-spin" /> : <FiSend />}
             Submit

@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth";
 import { connectDB } from "@/lib/mongodb";
 import ModelFeedback from "@/lib/models/ModelFeedback";
 
-// Simple in-memory rate limiter (per IP, 3 requests / minute)
+// Simple in-memory rate limiter (per IP, 10 requests / minute)
 const rateMap = new Map<string, { count: number; reset: number }>();
-const RATE_LIMIT = 3;
+const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
 
 function checkRateLimit(ip: string): boolean {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const {
-      username,
+      username: rawUsername,
       sourcePlatform,
       originalPrediction,
       originalFakeProbability,
@@ -41,11 +41,17 @@ export async function POST(req: NextRequest) {
       feedbackReason,
       notes,
       profileSnapshot,
+      predictionId,
+      isCorrect,
     } = body;
 
-    if (!username || !originalPrediction || !userCorrectedLabel || !feedbackReason) {
+    const username = (rawUsername || profileSnapshot?.username || "").trim();
+    const prediction = originalPrediction || "SUSPICIOUS";
+    const fakeProb = originalFakeProbability ?? 50;
+
+    if (!username || !userCorrectedLabel || !feedbackReason) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields." },
+        { success: false, error: "Missing required fields: Username, Corrected Label, or Reason." },
         { status: 400 }
       );
     }
@@ -61,17 +67,66 @@ export async function POST(req: NextRequest) {
       // ignore
     }
 
+    // Step 3: Check if feedback has ALREADY been submitted for this profile by this user/username
+    const existingFeedback = await ModelFeedback.findOne({
+      username: new RegExp(`^${username}$`, "i"),
+      $or: [
+        { submittedBy: submittedBy !== "anonymous" ? submittedBy : "____impossible____" },
+        { username: new RegExp(`^${username}$`, "i") }
+      ]
+    });
+
+    if (existingFeedback) {
+      return NextResponse.json(
+        { success: false, error: "Feedback has already been submitted for this profile." },
+        { status: 400 }
+      );
+    }
+
+    // Step 5: Save feedback document in feedback_data collection
     const feedback = await ModelFeedback.create({
       username,
       sourcePlatform: sourcePlatform || "instagram",
-      originalPrediction,
-      originalFakeProbability,
+      originalPrediction: prediction,
+      originalFakeProbability: fakeProb,
       userCorrectedLabel,
+      isCorrect: isCorrect !== undefined ? isCorrect : userCorrectedLabel === prediction,
       feedbackReason,
-      notes,
+      notes: notes || "",
       profileSnapshot,
       submittedBy,
+      source: "user_feedback",
+      verified: true,
+      reviewed: false,
+      approvedForTraining: true,
     });
+
+    // Step 5 & 7: Forward feedback to Python ML Microservice to automatically update training_data
+    try {
+      const mlUrlEnv = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000/predict-profile";
+      const mlFeedbackUrl = mlUrlEnv.replace("/predict-profile", "/feedback");
+      
+      await fetch(mlFeedbackUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          predictionId: predictionId || "",
+          username,
+          sourcePlatform: sourcePlatform || "instagram",
+          originalPrediction: prediction,
+          originalFakeProbability: fakeProb,
+          userCorrectedLabel,
+          isCorrect: isCorrect !== undefined ? isCorrect : userCorrectedLabel === prediction,
+          feedbackReason,
+          notes: notes || "",
+          profileSnapshot,
+          submittedBy,
+        }),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch (mlErr) {
+      console.warn("⚠️ Syncing feedback with ML microservice warning:", mlErr);
+    }
 
     return NextResponse.json({ success: true, id: feedback._id });
   } catch (error) {

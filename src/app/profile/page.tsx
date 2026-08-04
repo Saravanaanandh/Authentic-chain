@@ -103,10 +103,10 @@ export default function ProfilePage() {
               </div>
             </div>
             
-            <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto mt-4 md:mt-0">
+            {/* <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto mt-4 md:mt-0">
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Appearance</span>
               <ThemeToggle />
-            </div>
+            </div> */}
           </motion.div>
 
           {/* Menu Grid */}
