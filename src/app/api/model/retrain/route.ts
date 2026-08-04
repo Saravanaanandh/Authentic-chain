@@ -6,6 +6,19 @@ import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
 
 export const dynamic = "force-dynamic";
 
+function getPythonBaseUrl(): string {
+  const envUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+  // If user accidentally set port 3000 (Next.js server), fallback to port 8000 (Python service)
+  if (envUrl.includes(":3000")) {
+    return "http://127.0.0.1:8000";
+  }
+  return envUrl
+    .replace(/\/predict-profile\/?$/, "")
+    .replace(/\/api\/model\/retrain\/?$/, "")
+    .replace(/\/retrain\/?$/, "")
+    .replace(/\/$/, "");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { authOptions } = await import("@/lib/auth");
@@ -64,8 +77,7 @@ export async function POST(req: NextRequest) {
     let mlError = null;
 
     try {
-      const mlUrlEnv = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000/predict-profile";
-      const baseUrl = mlUrlEnv.replace("/predict-profile", "");
+      const baseUrl = getPythonBaseUrl();
       const mlKey = process.env.ML_SERVICE_API_KEY || "fakeid-shield-secret-key-2026";
 
       const response = await fetch(`${baseUrl}/retrain`, {
