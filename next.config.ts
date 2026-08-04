@@ -28,12 +28,10 @@ const nextConfig: NextConfig = {
     ],
   },
   serverExternalPackages: ["mongoose"],
-  experimental: {
-    allowedHosts: [
-      "authentic-chain.gces.net.in",
-      "authenticchain.gces.net.in"
-    ]
-  },
+  allowedDevOrigins: [
+    "authentic-chain.gces.net.in",
+    "authenticchain.gces.net.in"
+  ],
   async headers() {
     return [
       {
