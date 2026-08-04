@@ -120,7 +120,7 @@ def retrain_model(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8888))
+    port = int(os.getenv("ML_PORT", 8888))
     host = os.getenv("HOST", "0.0.0.0")
-    print(f"🚀 Starting Python ML Microservice (MongoDB Pipeline) on {host}:{port}")
+    print(f"[ML Service] Starting Python ML Microservice (MongoDB Pipeline) on {host}:{port}")
     uvicorn.run(app, host=host, port=port)

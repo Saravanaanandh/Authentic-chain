@@ -501,8 +501,8 @@ export default function DashboardPage() {
           {currentTab === "feedback" && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl font-extrabold text-white">Model Feedback</h1>
-                <p className="text-sm text-gray-400 mt-1">Review feedback logs submitted by verified users.</p>
+                <h1 className="text-3xl font-extrabold text-white">Pending Model Feedback</h1>
+                <p className="text-sm text-gray-400 mt-1">Review pending feedback logs waiting to be trained into the ML models.</p>
               </div>
 
               <div className="glass-card overflow-hidden">
@@ -517,8 +517,9 @@ export default function DashboardPage() {
 
                 {feedbacks.length === 0 ? (
                   <div className="text-center py-20">
-                    <FiMessageSquare className="mx-auto text-3xl text-neutral-600 mb-3" />
-                    <p className="text-gray-400 text-sm">No feedback entries recorded.</p>
+                    <FiCheckCircle className="mx-auto text-3xl text-green-500 mb-3" />
+                    <p className="text-gray-300 font-semibold text-sm">No Pending Feedback to Retrain</p>
+                    <p className="text-gray-500 text-xs mt-1">All user feedback submissions have been successfully trained into the model.</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-neutral-800">
@@ -564,7 +565,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {[
                   { label: "Predictive Accuracy", value: `${modelStats.accuracy}%`, icon: FiTarget, color: "text-green-500" },
-                  { label: "Feedback Received", value: modelStats.feedbackCount, icon: FiMessageSquare, color: "text-blue-400" },
+                  { label: "Pending Feedback", value: modelStats.pendingCount ?? modelStats.feedbackCount, icon: FiMessageSquare, color: "text-blue-400" },
                   { label: "Corrected Labels", value: modelStats.correctedCount, icon: FiAlertTriangle, color: "text-amber-500" },
                   { label: "Profiles Analyzed", value: modelStats.analyzedCount, icon: FiCpu, color: "text-white" },
                 ].map((kpi) => (
@@ -593,24 +594,45 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="border-t border-neutral-800 pt-6 flex flex-col sm:flex-row items-center gap-4">
-                  <button
-                    onClick={handleRetrainModel}
-                    disabled={retrainLoading}
-                    className="flex items-center gap-2 px-6 py-3 rounded-lg bg-white hover:bg-gray-200 text-black font-semibold text-sm cursor-pointer disabled:opacity-50"
-                  >
-                    {retrainLoading ? (
+                  {(() => {
+                    const pendingNum = modelStats.pendingCount ?? modelStats.feedbackCount ?? 0;
+                    const canRetrain = pendingNum > 0;
+                    return (
                       <>
-                        <FiRefreshCw className="animate-spin" />
-                        <span>Retraining Pipeline Running...</span>
+                        <button
+                          onClick={handleRetrainModel}
+                          disabled={retrainLoading || !canRetrain}
+                          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all ${
+                            canRetrain && !retrainLoading
+                              ? "bg-white hover:bg-gray-200 text-black cursor-pointer shadow-lg"
+                              : "bg-neutral-800 text-gray-500 cursor-not-allowed border border-neutral-700 opacity-60"
+                          }`}
+                        >
+                          {retrainLoading ? (
+                            <>
+                              <FiRefreshCw className="animate-spin" />
+                              <span>Retraining Pipeline Running...</span>
+                            </>
+                          ) : canRetrain ? (
+                            <>
+                              <FiCpu />
+                              <span>Execute Retraining ({pendingNum} Pending)</span>
+                            </>
+                          ) : (
+                            <>
+                              <FiCheckCircle className="text-green-500" />
+                              <span>No Pending Feedback to Retrain</span>
+                            </>
+                          )}
+                        </button>
+                        <p className="text-xs text-gray-500">
+                          {canRetrain
+                            ? "Takes approximately 3-5 seconds to compute corrections."
+                            : "All user feedback has been trained. Retraining button will activate when new feedback is received."}
+                        </p>
                       </>
-                    ) : (
-                      <>
-                        <FiCpu />
-                        <span>Execute Retraining</span>
-                      </>
-                    )}
-                  </button>
-                  <p className="text-xs text-gray-500">Takes approximately 3-5 seconds to compute corrections.</p>
+                    );
+                  })()}
                 </div>
 
                 {retrainMsg && (

@@ -420,8 +420,8 @@ export default function ProfileReport({
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: "Local Behavioral Analysis", score: data.internalAnalysis?.fakeProbability || data.analysis?.fakeProbability || 0, desc: "Internal ML Score", weight: `${hybrid.weights?.internal || 100}%` },
-            { label: "Advanced Ensemble Verification", score: data.externalAnalysis?.unavailable ? 0 : (data.externalAnalysis?.fakeProbability || 0), desc: "External API Score", weight: `${hybrid.weights?.external || 0}%` },
+            { label: "Local Behavioral Analysis", score: data.internalAnalysis?.fakeProbability ?? data.analysis?.fakeProbability ?? 0, desc: "Local Heuristics", weight: `${hybrid.weights?.internal ?? 50}%` },
+            { label: "Advanced Ensemble Verification", score: data.externalAnalysis?.unavailable ? (data.analysis?.fakeProbability ?? 0) : (data.externalAnalysis?.fakeProbability ?? data.analysis?.fakeProbability ?? 0), desc: "Python ML Microservice", weight: `${hybrid.weights?.external ?? 50}%` },
             { label: "Hybrid AI Fraud Detection", score: hybrid.finalFakeProbability, desc: "Final Hybrid Score", weight: "100%" },
           ].map((model, idx) => (
             <div key={idx} className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 p-4 rounded-lg">

@@ -7,10 +7,10 @@ import InstagramAnalysis from "@/lib/models/InstagramAnalysis";
 export const dynamic = "force-dynamic";
 
 function getPythonBaseUrl(): string {
-  const envUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
-  // If user accidentally set port 3000 (Next.js server), fallback to port 8000 (Python service)
+  const envUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:8888";
+  // If user accidentally set port 3000 (Next.js server), fallback to port 8888 (Python service)
   if (envUrl.includes(":3000")) {
-    return "http://127.0.0.1:8000";
+    return "http://127.0.0.1:8888";
   }
   return envUrl
     .replace(/\/predict-profile\/?$/, "")
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${mlKey}`
         },
-        signal: AbortSignal.timeout(20000) // 20s timeout for ML model training
+        signal: AbortSignal.timeout(60000) // 60s timeout for ML model training
       });
 
       if (response.ok) {

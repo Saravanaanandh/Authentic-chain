@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
       isCorrect,
     } = body;
 
-    const username = (rawUsername || profileSnapshot?.username || "").trim();
+    const cleanUsername = (rawUsername || profileSnapshot?.username || "").trim().replace(/^@/, "");
+    const username = cleanUsername;
     const prediction = originalPrediction || "SUSPICIOUS";
     const fakeProb = originalFakeProbability ?? 50;
 
@@ -67,12 +68,15 @@ export async function POST(req: NextRequest) {
       // ignore
     }
 
-    // Step 3: Check if feedback has ALREADY been submitted for this profile by this user/username
+    // Step 3: Check if feedback has ALREADY been submitted for this profile (case insensitive, with or without @)
+    const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const usernameRegex = new RegExp(`^@?${escapedUsername}$`, "i");
+
     const existingFeedback = await ModelFeedback.findOne({
-      username: new RegExp(`^${username}$`, "i"),
+      username: usernameRegex,
       $or: [
         { submittedBy: submittedBy !== "anonymous" ? submittedBy : "____impossible____" },
-        { username: new RegExp(`^${username}$`, "i") }
+        { reviewed: false }
       ]
     });
 
@@ -103,12 +107,16 @@ export async function POST(req: NextRequest) {
 
     // Step 5 & 7: Forward feedback to Python ML Microservice to automatically update training_data
     try {
-      const mlUrlEnv = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000/predict-profile";
-      const mlFeedbackUrl = mlUrlEnv.replace("/predict-profile", "/feedback");
+      const mlUrlEnv = process.env.ML_SERVICE_URL || "http://127.0.0.1:8888/predict-profile";
+      const mlFeedbackUrl = mlUrlEnv.replace(/\/predict-profile\/?$/, "") + "/feedback";
+      const mlKey = process.env.ML_SERVICE_API_KEY || "fakeid-shield-secret-key-2026";
       
       await fetch(mlFeedbackUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${mlKey}`
+        },
         body: JSON.stringify({
           predictionId: predictionId || "",
           username,
@@ -119,10 +127,10 @@ export async function POST(req: NextRequest) {
           isCorrect: isCorrect !== undefined ? isCorrect : userCorrectedLabel === prediction,
           feedbackReason,
           notes: notes || "",
-          profileSnapshot,
+          profileSnapshot: profileSnapshot || null,
           submittedBy,
         }),
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(8000),
       });
     } catch (mlErr) {
       console.warn("⚠️ Syncing feedback with ML microservice warning:", mlErr);

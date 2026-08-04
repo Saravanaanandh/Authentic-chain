@@ -34,8 +34,8 @@ export function calculateHybridScore(externalAnalysis: any, internalAnalysis: an
   const externalRisk = externalAnalysis.riskScore || 0;
   const internalRisk = internalAnalysis.riskScore || 0;
 
-  const finalFakeProbability = (externalFakeProb * 0.70) + (internalFakeProb * 0.30);
-  const finalRiskScore = (externalRisk * 0.70) + (internalRisk * 0.30);
+  const finalFakeProbability = (externalFakeProb * 0.60) + (internalFakeProb * 0.40);
+  const finalRiskScore = (externalRisk * 0.60) + (internalRisk * 0.40);
   
   let verdict = "REAL";
   if (finalFakeProbability >= 75) {
@@ -68,8 +68,8 @@ export function calculateHybridScore(externalAnalysis: any, internalAnalysis: an
     finalVerdict: verdict,
     combinedReasons,
     weights: {
-      external: 70,
-      internal: 30
+      external: 60,
+      internal: 40
     }
   };
 }

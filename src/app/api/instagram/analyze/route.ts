@@ -132,11 +132,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ---- Analyse profile ----
-    let analysis;
+    // ---- 1. Run Local Behavioral Analysis Engine ----
+    const localAnalysis = analyzeInstagramProfile(profileData);
+
+    // ---- 2. Call Python ML Microservice (Advanced Ensemble Verification on localhost:8888/predict-profile) ----
+    let pythonEnsembleAnalysis: any = null;
     try {
-      // Attempt to call Python ML Microservice
-      const mlUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000/predict-profile";
+      const mlUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:8888/predict-profile";
       const mlKey = process.env.ML_SERVICE_API_KEY || "fakeid-shield-secret-key-2026";
       
       const mlResponse = await fetch(mlUrl, {
@@ -148,54 +150,41 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           platform: "instagram",
           username: profileData.username,
-          bio: profileData.biography,
-          followers: profileData.followersCount,
-          following: profileData.followsCount,
-          posts: profileData.postsCount,
-          verified: profileData.verified,
-          profileImageUrl: profileData.profilePicUrl
+          bio: profileData.biography || "",
+          followers: profileData.followersCount || 0,
+          following: profileData.followsCount || 0,
+          posts: profileData.postsCount || 0,
+          verified: !!profileData.verified,
+          profileImageUrl: profileData.profilePicUrl || ""
         }),
-        // Fast fallback if service is down
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(8000)
       });
       
       if (mlResponse.ok) {
         const mlData = await mlResponse.json();
-        analysis = {
-          riskScore: mlData.fakeProbability,
-          fakeProbability: mlData.fakeProbability,
-          verdict: mlData.finalPrediction,
-          reasons: mlData.reasons,
-          tabularScore: mlData.tabularScore,
-          imageScore: mlData.imageScore,
-          bioScore: mlData.bioScore,
-          anomalyScore: mlData.anomalyScore,
+        pythonEnsembleAnalysis = {
+          riskScore: mlData.fakeProbability ?? 50,
+          fakeProbability: mlData.fakeProbability ?? 50,
+          verdict: mlData.finalPrediction || mlData.prediction || "SUSPICIOUS",
+          reasons: mlData.reasons || [],
+          tabularScore: mlData.tabularScore ?? mlData.breakdown?.tabularScore ?? 50,
+          imageScore: mlData.imageScore ?? mlData.breakdown?.imageScore ?? 50,
+          bioScore: mlData.bioScore ?? mlData.breakdown?.bioScore ?? 50,
+          anomalyScore: mlData.anomalyScore ?? mlData.breakdown?.anomalyScore ?? 20,
+          predictionId: mlData.predictionId || "",
         };
       } else {
-        throw new Error(`ML Service returned non-200: ${mlResponse.status}`);
+        console.warn(`Python ML Service returned status ${mlResponse.status}`);
       }
     } catch (mlErr) {
-      console.log("ML Microservice offline or failed, falling back to rule-based engine.", mlErr);
-      analysis = analyzeInstagramProfile(profileData);
+      console.log("Python ML Microservice offline or failed, using local analysis fallback.", mlErr);
     }
 
-    // ---- External API Prediction ----
-    const internalAnalysis = analysis;
-    let externalAnalysis;
-    try {
-      const externalPayload = mapApifyToPredictionInput(profileData);
-      const externalRes = await callExternalPredictionAPI(externalPayload);
-      if (externalRes.success) {
-        externalAnalysis = externalRes.analysis;
-      } else {
-        externalAnalysis = { unavailable: true };
-      }
-    } catch (extErr) {
-      console.error("External prediction failed:", extErr);
-      externalAnalysis = { unavailable: true };
-    }
+    // Set Local Analysis as internal and Python ML Microservice as Advanced Ensemble Verification
+    const internalAnalysis = localAnalysis;
+    const externalAnalysis = pythonEnsembleAnalysis || { unavailable: true };
 
-    // ---- Hybrid Fusion Engine ----
+    // ---- 3. Hybrid Fusion Engine ----
     const hybridAnalysis = calculateHybridScore(externalAnalysis, internalAnalysis);
 
 

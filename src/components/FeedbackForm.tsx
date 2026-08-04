@@ -33,6 +33,7 @@ export default function FeedbackForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     
     const targetUsername = (username || profileSnapshot?.username || "").trim();
     const targetPrediction = originalPrediction || "SUSPICIOUS";

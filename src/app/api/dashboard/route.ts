@@ -48,7 +48,9 @@ export async function GET(req: NextRequest) {
         .limit(limit)
         .lean(),
       User.find({}, "name email role authProvider createdAt").sort({ createdAt: -1 }).lean(),
-      ModelFeedback.find().sort({ createdAt: -1 }).lean(),
+      ModelFeedback.find({
+        $or: [{ reviewed: false }, { reviewed: { $exists: false } }]
+      }).sort({ createdAt: -1 }).lean(),
       InstagramAnalysis.find({ blockchainTx: { $ne: "" } }).sort({ createdAt: -1 }).limit(100).lean(),
     ]);
 
@@ -75,9 +77,20 @@ export async function GET(req: NextRequest) {
       date: doc.createdAt,
     }));
 
-    // Calculate dynamic model stats
-    const totalFeedbackCount = feedbackList.length;
-    const correctedCount = feedbackList.filter(f => f.userCorrectedLabel !== f.originalPrediction).length;
+    // Deduplicate feedback list by normalized username, submitter, and correction label
+    const seenFeedbackKeys = new Set<string>();
+    const uniqueFeedbackList = (feedbackList || []).filter((fb: any) => {
+      const cleanUser = (fb.username || "").toLowerCase().replace(/^@/, "");
+      const submitter = (fb.submittedBy || "anonymous").toLowerCase();
+      const key = `${cleanUser}:${submitter}:${fb.userCorrectedLabel}`;
+      if (seenFeedbackKeys.has(key)) return false;
+      seenFeedbackKeys.add(key);
+      return true;
+    });
+
+    // Calculate dynamic model stats for pending (unretrained) feedback
+    const pendingCount = uniqueFeedbackList.length;
+    const correctedCount = uniqueFeedbackList.filter((f: any) => f.userCorrectedLabel !== f.originalPrediction).length;
     
     // Fetch active model accuracy from model_versions collection
     const activeModelDoc = await ModelVersion.findOne({ deploymentStatus: "ACTIVE" })
@@ -85,15 +98,13 @@ export async function GET(req: NextRequest) {
       .lean();
     
     const accuracyRate = activeModelDoc
-      ? Math.round(activeModelDoc.accuracy * 100)
-      : totalFeedbackCount > 0
-      ? Math.round(((totalFeedbackCount - correctedCount) / totalFeedbackCount) * 100)
+      ? Math.round((activeModelDoc.accuracy > 1 ? activeModelDoc.accuracy / 100 : activeModelDoc.accuracy) * 100)
       : 93;
 
     return NextResponse.json({
       profiles,
       users: usersList,
-      feedbacks: feedbackList,
+      feedbacks: uniqueFeedbackList,
       blockchainTxns,
       stats: {
         totalProfiles: total,
@@ -104,9 +115,11 @@ export async function GET(req: NextRequest) {
       },
       modelStats: {
         accuracy: accuracyRate,
-        feedbackCount: totalFeedbackCount,
+        feedbackCount: pendingCount,
         correctedCount,
         analyzedCount: total,
+        pendingCount,
+        activeVersion: activeModelDoc?.versionNumber || "v1.0.0"
       },
       pagination: {
         page: Math.min(page, totalPages),
