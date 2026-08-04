@@ -77,7 +77,7 @@ const InstagramAnalysisSchema = new Schema<IInstagramAnalysis>(
       fakeProbability: { type: Number, required: true, min: 0, max: 100 },
       verdict: {
         type: String,
-        enum: ["REAL", "SUSPICIOUS", "HIGHLY FAKE"],
+        enum: ["REAL", "SUSPICIOUS", "HIGHLY FAKE", "ANALYZING"],
         required: true,
         index: true,
       },

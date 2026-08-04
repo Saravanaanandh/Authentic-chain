@@ -34,9 +34,16 @@ export async function GET() {
       { $sort: { "doc.createdAt": -1 } }
     ]);
 
+    const { default: ModelFeedback } = await import("@/lib/models/ModelFeedback");
+    const feedbackUsernames = await ModelFeedback.distinct("username", { submittedBy: userEmail });
+    const feedbackSet = new Set(feedbackUsernames);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const profiles = analyses.map((agg: any) => {
       const doc = agg.doc;
+      const verdict = doc.analysis?.verdict;
+      const resultLabel = verdict === "HIGHLY FAKE" ? "FAKE" : (verdict || "SUSPICIOUS");
+
       return {
         id: doc._id.toString(),
         username: doc.username,
@@ -47,10 +54,12 @@ export async function GET() {
         imageUrl: doc.profileData?.profilePicUrl || "",
         dataHash: doc.blockchainHash || "",
         riskScore: doc.analysis?.riskScore || 0,
-        result: doc.analysis?.verdict === "HIGHLY FAKE" ? "FAKE" : (doc.analysis?.verdict || "SUSPICIOUS"),
+        result: resultLabel,
         blockchainTx: doc.blockchainTx || "",
         createdAt: doc.createdAt,
         platform: "Instagram",
+        fullDoc: doc,
+        hasSubmittedFeedback: feedbackSet.has(doc.username),
       };
     });
 

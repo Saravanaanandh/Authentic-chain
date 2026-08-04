@@ -5,6 +5,21 @@ import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/lib/models/User";
 
+const appPort = process.env.PORT || "3000";
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = `http://localhost:${appPort}`;
+} else {
+  try {
+    const url = new URL(process.env.NEXTAUTH_URL);
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      url.port = appPort;
+      process.env.NEXTAUTH_URL = url.origin;
+    }
+  } catch (e) {
+    // Ignore invalid URL
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({

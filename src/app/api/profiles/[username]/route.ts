@@ -16,14 +16,16 @@ export async function GET(
   try {
     await connectDB();
     const { username } = await params;
-    const doc = await InstagramAnalysis.findOne({ username }).sort({ createdAt: -1 }).lean();
+    const doc: any = await InstagramAnalysis.findOne({ username }).sort({ createdAt: -1 }).lean();
     if (!doc) {
       return NextResponse.json(
         { message: `Profile "${username}" not found` },
         { status: 404 }
       );
     }
-    return NextResponse.json(doc);
+    const { default: ModelFeedback } = await import("@/lib/models/ModelFeedback");
+    const feedbackCount = await ModelFeedback.countDocuments({ username });
+    return NextResponse.json({ ...doc, hasSubmittedFeedback: feedbackCount > 0 });
   } catch (err: unknown) {
     console.error("profile lookup error:", err);
     return NextResponse.json(

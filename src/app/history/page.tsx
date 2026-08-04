@@ -6,9 +6,20 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { FiRefreshCw, FiSearch, FiCheckCircle, FiAlertTriangle, FiXCircle, FiClock, FiDatabase } from "react-icons/fi";
+import ProfileReport, { ProfileReportData } from "@/components/ProfileReport";
+import {
+  FiRefreshCw,
+  FiSearch,
+  FiCheckCircle,
+  FiAlertTriangle,
+  FiXCircle,
+  FiClock,
+  FiDatabase,
+  FiArrowLeft,
+  FiLoader,
+} from "react-icons/fi";
 
-interface Profile {
+interface ProfileItem {
   id: string;
   username: string;
   followers: number;
@@ -18,16 +29,19 @@ interface Profile {
   imageUrl: string;
   dataHash: string;
   riskScore: number;
-  result: "REAL" | "SUSPICIOUS" | "FAKE";
+  result: "REAL" | "SUSPICIOUS" | "FAKE" | "ANALYZING";
   blockchainTx: string;
   createdAt: string;
   platform?: string;
+  fullDoc?: any;
+  hasSubmittedFeedback?: boolean;
 }
 
-const badge = {
-  REAL: { icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-50 dark:bg-green-500/10", border: "border-green-200 dark:border-green-500/30" },
-  SUSPICIOUS: { icon: FiAlertTriangle, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/30" },
-  FAKE: { icon: FiXCircle, color: "text-red-500", bg: "bg-red-50 dark:bg-red-500/10", border: "border-red-200 dark:border-red-500/30" },
+const badgeConfig: Record<string, any> = {
+  REAL: { icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-50 dark:bg-green-500/10", border: "border-green-200 dark:border-green-500/30", label: "REAL" },
+  SUSPICIOUS: { icon: FiAlertTriangle, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/30", label: "SUSPICIOUS" },
+  FAKE: { icon: FiXCircle, color: "text-red-500", bg: "bg-red-50 dark:bg-red-500/10", border: "border-red-200 dark:border-red-500/30", label: "FAKE" },
+  ANALYZING: { icon: FiRefreshCw, color: "text-blue-500 animate-spin", bg: "bg-blue-50 dark:bg-blue-500/10", border: "border-blue-200 dark:border-blue-500/30", label: "ANALYZING..." },
 };
 
 function getRiskColor(score: number): string {
@@ -37,11 +51,12 @@ function getRiskColor(score: number): string {
 }
 
 export default function HistoryPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<ProfileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedProfile, setSelectedProfile] = useState<ProfileItem | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -55,7 +70,9 @@ export default function HistoryPage() {
       const r = await fetch("/api/profiles/my");
       const d = await r.json();
       setProfiles(d.profiles || []);
-    } catch { /* empty */ }
+    } catch {
+      /* empty */
+    }
     setLoading(false);
   }, []);
 
@@ -74,6 +91,86 @@ export default function HistoryPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black dark:border-white"></div>
       </div>
+    );
+  }
+
+  // ---- Detail View when a profile is selected ----
+  if (selectedProfile) {
+    const reportData: ProfileReportData = selectedProfile.fullDoc
+      ? {
+          success: true,
+          apifyData: selectedProfile.fullDoc.profileData || {
+            username: selectedProfile.username,
+            fullName: selectedProfile.username,
+            biography: selectedProfile.bio,
+            followersCount: selectedProfile.followers,
+            followsCount: 0,
+            postsCount: selectedProfile.posts,
+            verified: false,
+            profilePicUrl: selectedProfile.imageUrl,
+            isPrivate: false,
+            externalUrl: "",
+          },
+          hybridAnalysis: selectedProfile.fullDoc.hybridAnalysis || {
+            finalRiskScore: selectedProfile.riskScore,
+            finalFakeProbability: selectedProfile.riskScore,
+            finalVerdict: selectedProfile.result === "FAKE" ? "HIGHLY FAKE" : selectedProfile.result,
+            combinedReasons: selectedProfile.fullDoc.analysis?.reasons || [],
+            weights: { external: 0, internal: 100 },
+          },
+          internalAnalysis: selectedProfile.fullDoc.internalAnalysis,
+          externalAnalysis: selectedProfile.fullDoc.externalAnalysis,
+          blockchainProof: selectedProfile.fullDoc.blockchainTx
+            ? {
+                txHash: selectedProfile.fullDoc.blockchainTx,
+                dataHash: selectedProfile.fullDoc.blockchainHash || "",
+                timestamp: selectedProfile.createdAt,
+              }
+            : null,
+          hasSubmittedFeedback: selectedProfile.hasSubmittedFeedback,
+        }
+      : {
+          success: true,
+          apifyData: {
+            username: selectedProfile.username,
+            fullName: selectedProfile.username,
+            biography: selectedProfile.bio,
+            followersCount: selectedProfile.followers,
+            followsCount: 0,
+            postsCount: selectedProfile.posts,
+            verified: false,
+            profilePicUrl: selectedProfile.imageUrl,
+            isPrivate: false,
+            externalUrl: "",
+          },
+          hybridAnalysis: {
+            finalRiskScore: selectedProfile.riskScore,
+            finalFakeProbability: selectedProfile.riskScore,
+            finalVerdict: selectedProfile.result === "FAKE" ? "HIGHLY FAKE" : selectedProfile.result,
+            combinedReasons: [],
+            weights: { external: 0, internal: 100 },
+          },
+          hasSubmittedFeedback: selectedProfile.hasSubmittedFeedback,
+        };
+
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen pt-24 pb-16 px-4">
+          <div className="max-w-5xl mx-auto space-y-6">
+            <button
+              onClick={() => setSelectedProfile(null)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 text-sm font-medium text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer mb-2"
+            >
+              <FiArrowLeft /> Back to History
+            </button>
+
+            {/* Render complete profile report WITHOUT search bar */}
+            <ProfileReport data={reportData} showSearchBar={false} />
+          </div>
+        </main>
+        <Footer />
+      </>
     );
   }
 
@@ -130,8 +227,8 @@ export default function HistoryPage() {
             <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnimatePresence>
                 {filtered.map((p) => {
-                  const b = badge[p.result];
-                  const B = b.icon;
+                  const b = badgeConfig[p.result] || badgeConfig.SUSPICIOUS;
+                  const BIcon = b.icon;
                   return (
                     <motion.div
                       key={p.id}
@@ -139,7 +236,8 @@ export default function HistoryPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="glass-card p-5 transition-all"
+                      onClick={() => setSelectedProfile(p)}
+                      className="glass-card p-5 transition-all cursor-pointer hover:border-gray-400 dark:hover:border-neutral-600"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -165,9 +263,10 @@ export default function HistoryPage() {
                           </div>
                         </div>
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${b.bg} ${b.color} border ${b.border}`}
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${b.bg} ${b.color} border ${b.border} flex items-center gap-1`}
                         >
-                          {p.result}
+                          <BIcon className="text-xs" />
+                          {b.label}
                         </span>
                       </div>
 

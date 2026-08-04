@@ -4,21 +4,21 @@
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
-  /* Functional colors only */
+  /* Functional status colors */
   --color-status-green: #22c55e;
   --color-status-red: #ef4444;
   --color-status-amber: #f59e0b;
 }
 
 :root {
-  --bg-primary: #ffffff;
-  --text-primary: #000000;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --card-bg: #ffffff;
-  --card-border: #e5e7eb;
-  --input-bg: #f9fafb;
-  --hover-bg: #f3f4f6;
+  --bg-primary: #000000;
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-muted: #6b7280;
+  --card-bg: #111111;
+  --card-border: #333333;
+  --input-bg: #1a1a1a;
+  --hover-bg: #1a1a1a;
 }
 
 .dark {
@@ -35,14 +35,15 @@
 /* ====================== Base Styles ====================== */
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
+  background-color: #000000;
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: #000000;
+  color: #ffffff;
   min-height: 100vh;
   overflow-x: hidden;
-  transition: background-color 0.2s, color 0.2s;
 }
 
 /* ====================== Card ====================== */
@@ -62,16 +63,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
+  background: #333333;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: #555555;
 }
 
 /* ====================== Input Styles ====================== */
